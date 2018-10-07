@@ -111,18 +111,30 @@ class Seq2VecClassifierVAE(Model):
         # Sigma is computed as W_sigma(g(.)) + a_sigma.
         self.initial_latent_projection = FeedForward(
             self.stopless_dim,
-            1,
-            [latent_dim * 2],
-            [torch.nn.Tanh()]
+            2,
+            [self.stopless_dim // 2, latent_dim * 2],
+            [torch.nn.ReLU(), torch.nn.ReLU()]
         )
 
         # The latent topics learned.
         self.beta = torch.nn.Parameter(torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size(self.stopless_namespace)))
         torch.nn.init.uniform_(self.beta)
 
-        self.mu_projection = Linear(latent_dim * 2, latent_dim)
-        self.sigma_projection = Linear(latent_dim * 2, latent_dim)
-        self.reconstruction_projection = Linear(latent_dim, self.stopless_dim)
+        self.mu_projection = FeedForward(
+            latent_dim * 2,
+            2,
+            [latent_dim * 2, latent_dim],
+            [torch.nn.ReLU(), torch.nn.ReLU()]
+        )
+
+
+        self.sigma_projection = FeedForward(
+            latent_dim * 2,
+            2,
+            [latent_dim * 2, latent_dim],
+            [torch.nn.ReLU(), torch.nn.ReLU()]
+        )
+
 
         # Noise used to implement the reparameterization trick.
         # Prior will be a 0, 1 multivariate gaussian.
@@ -175,7 +187,7 @@ class Seq2VecClassifierVAE(Model):
         # Joint learning of classification and the VAE.
         # Negative KL-div needs to be negated since loss is negative likelihood.
         output_dict['loss'] = -negative_kl_divergence + reconstruction_loss + classification_loss
-        self.metrics['KL-Divergence'](-negative_kl_divergence)
+        self.metrics['KL-Divergence'](-negative_kl_divergence.item())
         self.metrics['Accuracy'](logits, sentiment)
 
         return output_dict
