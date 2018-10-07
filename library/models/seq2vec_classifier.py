@@ -18,6 +18,8 @@ from library.dataset_readers.util import STOP_WORDS
 
 from .util import compute_stopless_bow_vector, rnn_forward
 
+# TODO: GPU safety.
+
 
 @Model.register("seq2vec_classifier")
 class Seq2VecClassifier(Model):

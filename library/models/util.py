@@ -20,6 +20,7 @@ def compute_stopless_bow_vector(vocab: Vocabulary,
     """ Computes bag-of-words word frequency over a vocabulary that excludes stop words.
     """
     batch_size = input_tokens['tokens'].size(0)
+    device = input_tokens['tokens'].device
     res = torch.zeros(batch_size, vocab.get_vocab_size(stopless_vocab_namespace))
     for i, row in enumerate(input_tokens['tokens']):
         # A conversion between namespaces (full vocab to stopless) is necessary.
@@ -31,7 +32,7 @@ def compute_stopless_bow_vector(vocab: Vocabulary,
             # We treat padding and unknown tokens as stop words.
             res[i][index] = count * int(index > 1)
 
-    return res
+    return res.to(device)
 
 
 def sort_and_run_forward(module: Callable[[PackedSequence, Optional[RnnState]],
