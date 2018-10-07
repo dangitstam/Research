@@ -116,6 +116,10 @@ class Seq2VecClassifierVAE(Model):
             [torch.nn.Tanh()]
         )
 
+        # The latent topics learned.
+        self.beta = torch.nn.Parameter(torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size(self.stopless_namespace)))
+        torch.nn.init.uniform_(self.beta)
+
         self.mu_projection = Linear(latent_dim * 2, latent_dim)
         self.sigma_projection = Linear(latent_dim * 2, latent_dim)
         self.reconstruction_projection = Linear(latent_dim, self.stopless_dim)
@@ -149,14 +153,14 @@ class Seq2VecClassifierVAE(Model):
         log_sigma_squared = self.sigma_projection(init_latent_bow)
 
         # Sample from the VAE.
-        epsilon = self.noise.rsample(sample_shape=torch.Size([mu.size(0)]))
+        epsilon = self.noise.rsample(sample_shape=torch.Size([mu.size(0)])).to(mu.device)
         latent_bow = mu + torch.sqrt(torch.exp(log_sigma_squared)) * epsilon
 
         features = torch.cat([encoded_input, latent_bow], dim=-1)
 
         # Train the VAE to make the latent features rich.
-        reconstructed_bow = self.reconstruction_projection(latent_bow)
-        reconstruction_loss = self.reconstruction_criterion(stopless_bow, reconstructed_bow)
+        reconstructed_bow = latent_bow.matmul(self.beta)   # TODO: Background freq.
+        reconstruction_loss = self.reconstruction_criterion(reconstructed_bow, stopless_bow)
 
         # Compute logits.
         # Shape: (batch x num_classes)
@@ -165,7 +169,7 @@ class Seq2VecClassifierVAE(Model):
 
         # Loss and metrics.
         negative_kl_divergence = torch.sum(log_sigma_squared - mu ** 2 - torch.exp(log_sigma_squared), dim=-1)
-        negative_kl_divergence += torch.ones(mu.size(0))
+        negative_kl_divergence += torch.ones(mu.size(0)).float().to(mu.device)
         negative_kl_divergence = negative_kl_divergence.sum() / 2
 
         # Joint learning of classification and the VAE.
