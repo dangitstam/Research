@@ -1,0 +1,52 @@
+{
+  "dataset_reader": {
+    "type": "imdb_review_reader",
+    "tokenizer": {
+      "type": "word"
+    },
+    "words_per_instance": 35
+  },
+  "train_data_path": "data/train_unsup.jsonl",
+  "validation_data_path": "data/valid_unsup.jsonl",
+  "vocabulary": {
+    "max_vocab_size": 5000,
+    "tokens_to_add": {
+      "labels": ["positive", "negative"]
+    }
+  },
+  "model": {
+    "type": "topic_rnn",
+    "classification_mode": false,
+    "freeze_feature_extraction": false,
+    "text_field_embedder": {
+      "tokens": {
+        "type": "embedding",
+        "embedding_dim": 100,
+        "trainable": true,
+        "vocab_namespace": "tokens"
+      }
+    },
+    "text_encoder": {
+      "type": "rnn",
+      "input_size": 100,
+      "hidden_size": 300,
+      "num_layers": 2
+    },
+    "topic_dim": 200
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 64
+  },
+
+  "trainer": {
+    "num_epochs": 50,
+    "patience": 10,
+    "cuda_device": 0,
+    "grad_clipping": 0.5,
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.0001
+    }
+  }
+}
