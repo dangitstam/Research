@@ -16,9 +16,7 @@ from torch.nn.modules.linear import Linear
 
 from library.dataset_readers.util import STOP_WORDS
 
-from .util import compute_stopless_bow_vector, rnn_forward
-
-# TODO: GPU safety.
+from .util import compute_stopless_bow_vector
 
 
 @Model.register("seq2vec_classifier")
@@ -115,19 +113,12 @@ class Seq2VecClassifierVAE(Model):
             [self.stopless_dim // 2, latent_dim * 2],
             [torch.nn.ReLU(), torch.nn.ReLU()]
         )
-
-        # The latent topics learned.
-        self.beta = torch.nn.Parameter(torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size(self.stopless_namespace)))
-        torch.nn.init.uniform_(self.beta)
-
         self.mu_projection = FeedForward(
             latent_dim * 2,
             2,
             [latent_dim * 2, latent_dim],
             [torch.nn.ReLU(), torch.nn.ReLU()]
         )
-
-
         self.sigma_projection = FeedForward(
             latent_dim * 2,
             2,
@@ -135,6 +126,10 @@ class Seq2VecClassifierVAE(Model):
             [torch.nn.ReLU(), torch.nn.ReLU()]
         )
 
+        # The latent topics learned.
+        self.beta = torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size(self.stopless_namespace))
+        self.beta = torch.nn.Parameter(self.beta)
+        torch.nn.init.uniform_(self.beta)
 
         # Noise used to implement the reparameterization trick.
         # Prior will be a 0, 1 multivariate gaussian.
@@ -161,12 +156,12 @@ class Seq2VecClassifierVAE(Model):
 
         # Compute the variational distribution.
         init_latent_bow = self.initial_latent_projection(stopless_bow)
-        mu = self.mu_projection(init_latent_bow)
-        log_sigma_squared = self.sigma_projection(init_latent_bow)
+        mu = self.mu_projection(init_latent_bow)  # pylint: disable=C0103
+        sigma = self.sigma_projection(init_latent_bow)
 
         # Sample from the VAE.
         epsilon = self.noise.rsample(sample_shape=torch.Size([mu.size(0)])).to(mu.device)
-        latent_bow = mu + torch.sqrt(torch.exp(log_sigma_squared)) * epsilon
+        latent_bow = mu + sigma * epsilon
 
         features = torch.cat([encoded_input, latent_bow], dim=-1)
 
@@ -180,9 +175,8 @@ class Seq2VecClassifierVAE(Model):
         classification_loss = self.classification_criterion(logits, sentiment)
 
         # Loss and metrics.
-        negative_kl_divergence = torch.sum(log_sigma_squared - mu ** 2 - torch.exp(log_sigma_squared), dim=-1)
-        negative_kl_divergence += torch.ones(mu.size(0)).float().to(mu.device)
-        negative_kl_divergence = negative_kl_divergence.sum() / 2
+        negative_kl_divergence = 1 + torch.log(sigma ** 2) - mu ** 2 - sigma ** 2
+        negative_kl_divergence = 0.5 * negative_kl_divergence.sum()
 
         # Joint learning of classification and the VAE.
         # Negative KL-div needs to be negated since loss is negative likelihood.
