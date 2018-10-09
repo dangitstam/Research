@@ -61,7 +61,7 @@ class BOWSeq2VecClassifier(Model):
         self.vae = vae
         self.text_field_embedder = text_field_embedder
 
-        self.latent_dim = vae.encoder.get_output_dim()
+        # Loss functions.
         self.classification_criterion = torch.nn.CrossEntropyLoss()
         self.reconstruction_criterion = torch.nn.MSELoss()
 
@@ -69,7 +69,8 @@ class BOWSeq2VecClassifier(Model):
         self.log_term_frequency = self._compute_background_log_frequency(precomputed_word_counts)
 
         # Note that the VAE's encoder is the initial projection into the latent space.
-        feature_dim = self.encoder.get_output_dim() + self.vae.encoder.get_output_dim()
+        self.latent_dim = vae.encoder.get_output_dim()
+        feature_dim = self.encoder.get_output_dim() + self.latent_dim
         self.output_projection = Linear(feature_dim, 2)
 
         # The latent topics learned.
