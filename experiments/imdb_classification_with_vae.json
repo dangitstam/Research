@@ -2,8 +2,8 @@
   "dataset_reader": {
     "type": "imdb_review_reader"
   },
-  "train_data_path": "data/train_labeled.jsonl",
-  "validation_data_path": "data/valid_labeled.jsonl",
+  "train_data_path": "data/train_labeled_small.jsonl",
+  "validation_data_path": "data/valid_labeled_small.jsonl",
   "vocabulary": {
     "max_vocab_size": 8000
   },
@@ -19,7 +19,7 @@
     },
     "encoder": {
       "type": "boe",
-      "embedding_dim": 300,
+      "embedding_dim": 300
     },
     "latent_dim": 200
   },
@@ -29,7 +29,7 @@
   },
   "trainer": {
     "num_epochs": 10,
-    "cuda_device": 0,
+    "cuda_device": -1,
     "grad_clipping": 0.5,
     "optimizer": {
       "type": "adam",
