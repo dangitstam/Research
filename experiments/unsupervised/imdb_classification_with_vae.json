@@ -1,0 +1,68 @@
+{
+  "dataset_reader": {
+    "type": "imdb_review_reader"
+  },
+  "train_data_path": "data/train_unsup_small.jsonl",
+  "validation_data_path": "data/valid_unsup_small.jsonl",
+  "vocabulary": {
+    "max_vocab_size": 8000
+  },
+  "model": {
+    "type": "BOWSeq2VecClassifier",
+    "precomputed_word_counts": "/Users/dangitstam/Research/git/Research/word_counts.json",
+    "text_field_embedder": {
+      "tokens": {
+        "type": "embedding",
+        "embedding_dim": 100,
+        "trainable": true,
+        "vocab_namespace": "tokens"
+      }
+    },
+    "encoder": {
+      "type": "lstm",
+      "input_size": 100,
+      "hidden_size": 100,
+      "num_layers": 1
+    },
+    "vae": {
+      "encoder": {
+        "input_dim": 8002,
+        "num_layers": 1,
+        "hidden_dims": [200],
+        "activations": ["tanh"]
+      },
+      "decoder": {
+        "input_dim": 200,
+        "num_layers": 1,
+        "hidden_dims": [8002],
+        "activations": ["tanh"]
+      },
+      "mu_projection": {
+        "input_dim": 200,
+        "num_layers": 1,
+        "hidden_dims": [200],
+        "activations": ["tanh"]
+      },
+      "log_variance_projection": {
+        "input_dim": 200,
+        "num_layers": 1,
+        "hidden_dims": [200],
+        "activations": ["tanh"]
+      }
+    },
+    "latent_dim": 200
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 64
+  },
+  "trainer": {
+    "num_epochs": 10,
+    "cuda_device": -1,
+    "grad_clipping": 0.5,
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.0001
+    }
+  }
+}

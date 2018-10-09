@@ -14,6 +14,56 @@ RnnState = Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]  # pylint: dis
 RnnStateStorage = Tuple[torch.Tensor, ...]  # pylint: disable=invalid-name
 
 
+def log_standard_categorical(logits: torch.Tensor):
+    """
+    Calculates the cross entropy between a (one-hot) categorical vector
+    and a standard (uniform) categorical distribution.
+    :param p: one-hot categorical distribution
+    :return: H(p, u)
+
+    Originally from https://github.com/wohlert/semi-supervised-pytorch.
+    """
+    # Uniform prior over y
+    prior = torch.softmax(torch.ones_like(logits), dim=1)
+    prior.requires_grad = False
+
+    cross_entropy = -torch.sum(logits * torch.log(prior + 1e-8), dim=1)
+
+    return cross_entropy
+
+
+def sort_unsupervised_instances(input_tokens: torch.LongTensor,
+                                sentiment: torch.LongTensor,
+                                labelled: torch.LongTensor):
+    """Given a batch of examples, separate them into labelled and unlablled instances."""
+
+    # Labelled is zero everywhere an example is unlabelled and 1 otherwise.
+    labelled_indices = (labelled != 0).nonzero().squeeze()
+    labelled_tokens = input_tokens[labelled_indices]
+    labelled_sentiment = sentiment[labelled_indices]
+
+    unlabelled_indices = (labelled == 0).nonzero().squeeze()
+    unlabelled_tokens = input_tokens[unlabelled_indices]
+
+    return (labelled_tokens, labelled_sentiment), (unlabelled_tokens, None)
+
+def compute_bow_vector(vocab: Vocabulary,
+                       input_tokens: Dict[str, torch.LongTensor]) -> Dict[str, torch.Tensor]:
+    """ Computes bag-of-words word frequency over a vocabulary.
+    """
+    batch_size = input_tokens['tokens'].size(0)
+    device = input_tokens['tokens'].device
+    res = torch.zeros(batch_size, vocab.get_vocab_size())
+    for i, row in enumerate(input_tokens['tokens']):
+        words = [vocab.get_token_from_index(index) for index in row.tolist()]
+        word_counts = dict(Counter(words))
+        for word, count in word_counts.items():
+            index = vocab.get_token_index(word)
+
+            res[i][index] = count * int(index > 0)
+
+    return res.to(device)
+
 def compute_stopless_bow_vector(vocab: Vocabulary,
                                 input_tokens: Dict[str, torch.LongTensor],
                                 stopless_vocab_namespace: str) -> Dict[str, torch.Tensor]:

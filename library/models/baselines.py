@@ -139,8 +139,9 @@ class Seq2VecClassifierVAE(Model):
 
     @overrides
     def forward(self, # pylint: disable=arguments-differ
-                input_tokens: Dict[str, torch.LongTensor],
-                sentiment: Dict[str, torch.LongTensor]):
+                input_tokens: Dict[str, torch.Tensor],
+                sentiment: torch.Tensor,
+                labelled: torch.Tensor):
 
         output_dict = {}
 
@@ -157,7 +158,8 @@ class Seq2VecClassifierVAE(Model):
         # Compute the variational distribution.
         init_latent_bow = self.initial_latent_projection(stopless_bow)
         mu = self.mu_projection(init_latent_bow)  # pylint: disable=C0103
-        sigma = self.sigma_projection(init_latent_bow)
+        log_sigma_squared = self.sigma_projection(init_latent_bow)
+        sigma = torch.sqrt(torch.exp(log_sigma_squared))
 
         # Sample from the VAE.
         epsilon = self.noise.rsample(sample_shape=torch.Size([mu.size(0)])).to(mu.device)

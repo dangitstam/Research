@@ -77,9 +77,11 @@ class IMDBReviewReader(DatasetReader):
                 example_text = normalize_raw_text(example['text'])
                 example_text_tokenized = self._tokenizer.tokenize(example_text)
                 example_sentiment = "positive" if example['sentiment'] >= 5 else "negative"
+                exampled_labelled = "unlabelled" if example['sentiment'] else "labelled"
                 example_instance = {
                     'input_tokens': TextField(example_text_tokenized, self._token_indexers),
-                    'sentiment': LabelField(example_sentiment)
+                    'sentiment': LabelField(example_sentiment),
+                    'labelled': LabelField(exampled_labelled)
                 }
 
                 yield Instance(example_instance)
