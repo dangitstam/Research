@@ -63,7 +63,9 @@ class BOWSeq2VecClassifier(Model):
 
         # Loss functions.
         self.classification_criterion = torch.nn.CrossEntropyLoss()
-        self.reconstruction_criterion = torch.nn.MSELoss()
+
+        # Log softmax for computing loss on the bag of words.
+        self.log_softmax = torch.nn.LogSoftmax()
 
         # Background log frequency vector.
         self.log_term_frequency = self._compute_background_log_frequency(precomputed_word_counts)
@@ -145,9 +147,12 @@ class BOWSeq2VecClassifier(Model):
 
         elbo, logits = self.ELBO(input_tokens)
 
+        # Normalize logits as they would be before prediction.
+        logits = torch.softmax(logits, dim=-1)
+
         # Compute q(y | x)(-ELBO) and entropy H(q(y|x)), sum over all labels.
         H = -torch.sum(logits * torch.log(logits + 1e-8), dim=-1) # pylint: disable=C0103
-        L = torch.sum(logits * elbo, dim=-1) # pylint: disable=C0103
+        L = torch.sum(logits * elbo.unsqueeze(1), dim=-1) # pylint: disable=C0103
 
         return torch.mean(L + H)
 
@@ -169,6 +174,8 @@ class BOWSeq2VecClassifier(Model):
         input_mask = util.get_text_field_mask(input_tokens)
         encoded_input = self.encoder(embedded_input, input_mask)
 
+        import pdb; pdb.set_trace()
+
         # Bag-of-words representation.
         bow = compute_bow_vector(self.vocab, input_tokens)
 
@@ -182,7 +189,8 @@ class BOWSeq2VecClassifier(Model):
 
         # Train the VAE to make the latent features rich.
         reconstructed_bow = z.matmul(self.beta) + self.log_term_frequency
-        reconstruction_loss = self.reconstruction_criterion(reconstructed_bow, bow)
+        log_reconstructed_bow = self.log_softmax(reconstructed_bow)
+        reconstruction_loss = -torch.sum(bow * log_reconstructed_bow, dim=-1)
 
         # Compute logits.
         # Shape: (batch x num_classes)
@@ -209,8 +217,13 @@ class BOWSeq2VecClassifier(Model):
         for i in range(self.vocab.get_vocab_size()):
             token = self.vocab.get_token_from_index(i)
             if token in precomputed_word_counts:
-                self.log_term_frequency[i] = precomputed_word_counts[token]
-        log_term_frequency = torch.log(self.log_term_frequency / torch.sum(log_term_frequency))
+                log_term_frequency[i] = precomputed_word_counts[token]
+
+        log_term_frequency = torch.log(log_term_frequency)
+
+        # At this point, padding and UNKNOWN are -inf.
+        log_term_frequency[0] = 0
+        log_term_frequency[1] = 0
 
         return log_term_frequency
 
