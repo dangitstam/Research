@@ -174,8 +174,6 @@ class BOWSeq2VecClassifier(Model):
         input_mask = util.get_text_field_mask(input_tokens)
         encoded_input = self.encoder(embedded_input, input_mask)
 
-        import pdb; pdb.set_trace()
-
         # Bag-of-words representation.
         bow = compute_bow_vector(self.vocab, input_tokens)
 

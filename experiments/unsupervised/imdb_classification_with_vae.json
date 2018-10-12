@@ -4,6 +4,7 @@
   },
   "train_data_path": "data/train_unsup_small.jsonl",
   "validation_data_path": "data/valid_unsup_small.jsonl",
+  "datasets_for_vocab_creation": ["train"],
   "vocabulary": {
     "max_vocab_size": 8000
   },
@@ -49,8 +50,7 @@
         "hidden_dims": [200],
         "activations": ["tanh"]
       }
-    },
-    "latent_dim": 200
+    }
   },
   "iterator": {
     "type": "basic",
