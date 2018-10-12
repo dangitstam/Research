@@ -210,7 +210,7 @@ class BOWSeq2VecClassifier(Model):
             token = self.vocab.get_token_from_index(i)
             if token in precomputed_word_counts:
                 self.log_term_frequency[i] = precomputed_word_counts[token]
-        log_term_frequency = torch.log(self.log_term_frequency)
+        log_term_frequency = torch.log(self.log_term_frequency / torch.sum(log_term_frequency))
 
         return log_term_frequency
 
