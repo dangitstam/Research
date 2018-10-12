@@ -175,6 +175,9 @@ class BOWSeq2VecClassifier(Model):
         # Variational Inference.
         z, mu, sigma = self.vae(bow)  # pylint: disable=C0103
 
+        # For better interpretibility of topics.
+        z = torch.softmax(z, dim=-1)
+
         features = torch.cat([encoded_input, z], dim=-1)
 
         # Train the VAE to make the latent features rich.
@@ -207,7 +210,7 @@ class BOWSeq2VecClassifier(Model):
             token = self.vocab.get_token_from_index(i)
             if token in precomputed_word_counts:
                 self.log_term_frequency[i] = precomputed_word_counts[token]
-        log_term_frequency = torch.softmax(self.log_term_frequency, -1)
+        log_term_frequency = torch.log(self.log_term_frequency)
 
         return log_term_frequency
 
