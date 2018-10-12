@@ -76,12 +76,12 @@ class IMDBReviewReader(DatasetReader):
                 example = ujson.loads(line)
                 example_text = normalize_raw_text(example['text'])
                 example_text_tokenized = self._tokenizer.tokenize(example_text)
-                example_sentiment = "positive" if example['sentiment'] >= 5 else "negative"
-                exampled_labelled = "unlabelled" if example['sentiment'] else "labelled"
+                example_sentiment = 1 if example['sentiment'] >= 5 else 0
+                exampled_labelled = 1 if example['sentiment'] else 0
                 example_instance = {
                     'input_tokens': TextField(example_text_tokenized, self._token_indexers),
-                    'sentiment': LabelField(example_sentiment),
-                    'labelled': LabelField(exampled_labelled)
+                    'sentiment': LabelField(example_sentiment, skip_indexing=True),
+                    'labelled': LabelField(exampled_labelled, skip_indexing=True)
                 }
 
                 yield Instance(example_instance)
