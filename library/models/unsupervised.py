@@ -14,6 +14,7 @@ from tabulate import tabulate
 # TODO: Explore stopless version.
 from library.dataset_readers.util import STOP_WORDS
 from library.models.vae import VAE
+from torch.nn.functional import log_softmax
 
 
 @Model.register("BOWTopicModel")
@@ -37,13 +38,13 @@ class BOWTopicModel(Model):
     """
     def __init__(self, vocab: Vocabulary,
                  vae: VAE,
-                 precomputed_word_counts: str = None,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
         super(BOWTopicModel, self).__init__(vocab, regularizer)
 
         self.metrics = {
             'KL-Divergence': Average(),
+            'Reconstruction': Average()
         }
 
         self.vocab = vocab
@@ -51,12 +52,6 @@ class BOWTopicModel(Model):
 
         # Loss functions.
         self.classification_criterion = torch.nn.CrossEntropyLoss()
-
-        # Log softmax for computing loss on the bag of words.
-        self.log_softmax = torch.nn.LogSoftmax()
-
-        # Background log frequency vector.
-        self.log_term_frequency = self._compute_background_log_frequency(precomputed_word_counts)
 
         # Note that the VAE's encoder is the initial projection into the latent space.
         self.latent_dim = vae.encoder.get_output_dim()
@@ -69,7 +64,7 @@ class BOWTopicModel(Model):
             if word not in STOP_WORDS:
                 self.vocab.add_token_to_namespace(word, "stopless")
 
-        # The latent topics learned.
+        # Learnable bias and latent topics.
         alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
         self.alpha = torch.nn.Parameter(alpha)
         torch.nn.init.uniform_(self.alpha)
@@ -78,9 +73,9 @@ class BOWTopicModel(Model):
         self.beta = torch.nn.Parameter(beta)
         torch.nn.init.uniform_(self.beta)
 
-        # Given there's two loss functions that both have a KL-Divergence term, to better keep track of it
-        # as a metric, store it here and zero it out before computing loss.
+        # For computing metrics.
         self.kl_divergence = 0
+        self.reconstruction = 0
 
         self.step = 0
 
@@ -103,11 +98,13 @@ class BOWTopicModel(Model):
         """
         output_dict = {}
         self.kl_divergence = 0
+        self.reconstruction = 0
 
         elbo = self.ELBO(input_tokens)
 
-        output_dict['loss'] = -torch.sum(elbo)
+        output_dict['loss'] = -torch.mean(elbo)
         self.metrics['KL-Divergence'](self.kl_divergence)
+        self.metrics['Reconstruction'](self.reconstruction)
 
         if self.step == 100:
             print(tabulate(self.extract_topics(), headers=["Topic #", "Words"]))
@@ -119,7 +116,7 @@ class BOWTopicModel(Model):
 
     def ELBO(self, input_tokens: torch.Tensor):  # pylint: disable=C0103
         """
-        Computes ELBO loss: -KL-Divergence + reconstruction likelihood.
+        Computes ELBO loss: -KL-Divergence + reconstruction log likelihood.
 
         :param input_tokens: ``torch.Tensor``
             The tokenized input, expected as (batch, sequence length)
@@ -137,16 +134,18 @@ class BOWTopicModel(Model):
         # For better interpretibility of topics.
         z = torch.softmax(z, dim=-1)  # pylint: disable=C0103
 
-        # Train the VAE to make the latent features rich.
+        # Reconstruction log likelihood.
         reconstructed_bow = z.matmul(self.beta) + self.alpha
-        log_reconstructed_bow = self.log_softmax(reconstructed_bow)
+        log_reconstructed_bow = log_softmax(reconstructed_bow, dim=-1)
         reconstruction_log_likelihood = torch.mean(bow * log_reconstructed_bow, dim=-1)
 
         negative_kl_divergence = 1 + torch.log(1e-8 + sigma ** 2) - mu ** 2 - sigma ** 2
         negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)
         self.kl_divergence = -torch.mean(negative_kl_divergence).item()
+        self.reconstruction = -torch.mean(reconstruction_log_likelihood)
 
         # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[P(x | z, y)]
+        # Shape: (batch, )
         elbo = reconstruction_log_likelihood  + negative_kl_divergence
 
         return elbo
@@ -202,8 +201,8 @@ class BOWTopicModel(Model):
 
     def extract_topics(self, k=20):
         """
-        Given a model and corpus containing word encodings, print the
-        top k topics present in the model.
+        Given the learned (topic, vocabulary size) beta, print the
+        top k words from each topic.
         """
 
         words = list(range(self.beta.size(1)))

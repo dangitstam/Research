@@ -10,11 +10,10 @@
   },
   "model": {
     "type": "BOWTopicModel",
-    "precomputed_word_counts": "/Users/dangitstam/Research/git/Research/word_counts.json",
     "vae": {
       "apply_batchnorm": {
-          "mu": true,
-          "sigma": true
+          "mu": false,
+          "sigma": false
       },
       "encoder": {
         "input_dim": 9527,
@@ -52,7 +51,7 @@
     "grad_clipping": 0.5,
     "optimizer": {
       "type": "adam",
-      "lr": 0.001
+      "lr": 0.0001
     }
   }
 }

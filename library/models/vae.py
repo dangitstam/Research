@@ -60,6 +60,9 @@ class VAE(Model):
         if self.apply_batchnorm['sigma']:
             sigma = self.batchnorm(sigma) # pylint: disable=C0103
 
-        z = mu + sigma * epsilon # pylint: disable=C0103
+        if self.training:
+            z = mu + sigma * epsilon # pylint: disable=C0103
+        else:
+            z = mu
 
         return z, mu, sigma
