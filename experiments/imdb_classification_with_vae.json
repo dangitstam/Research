@@ -8,19 +8,7 @@
     "max_vocab_size": 8000
   },
   "model": {
-    "type": "seq2vec_vae_classifier",
-    "text_field_embedder": {
-      "tokens": {
-        "type": "embedding",
-        "embedding_dim": 300,
-        "trainable": true,
-        "vocab_namespace": "tokens"
-      }
-    },
-    "encoder": {
-      "type": "boe",
-      "embedding_dim": 300
-    },
+    "type": "BOWTopicModel",
     "latent_dim": 200
   },
   "iterator": {

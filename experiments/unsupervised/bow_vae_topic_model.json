@@ -2,59 +2,49 @@
   "dataset_reader": {
     "type": "imdb_review_reader"
   },
-  "train_data_path": "data/train_unsup_small.jsonl",
-  "validation_data_path": "data/valid_unsup_small.jsonl",
+  "train_data_path": "data/train_unsup_10k.jsonl",
+  "validation_data_path": "data/valid_labeled_small.jsonl",
   "datasets_for_vocab_creation": ["train"],
   "vocabulary": {
-    "max_vocab_size": 8000
+    "max_vocab_size": 10000
   },
   "model": {
-    "type": "BOWSeq2VecClassifier",
+    "type": "BOWTopicModel",
     "precomputed_word_counts": "/Users/dangitstam/Research/git/Research/word_counts.json",
-    "text_field_embedder": {
-      "tokens": {
-        "type": "embedding",
-        "embedding_dim": 100,
-        "trainable": true,
-        "vocab_namespace": "tokens"
-      }
-    },
-    "encoder": {
-      "type": "lstm",
-      "input_size": 100,
-      "hidden_size": 100,
-      "num_layers": 1
-    },
     "vae": {
+      "apply_batchnorm": {
+          "mu": true,
+          "sigma": true
+      },
       "encoder": {
-        "input_dim": 8002,
+        "input_dim": 9527,
         "num_layers": 1,
-        "hidden_dims": [200],
+        "hidden_dims": [10],
         "activations": ["tanh"]
       },
       "decoder": {
-        "input_dim": 200,
+        "input_dim": 10,
         "num_layers": 1,
-        "hidden_dims": [8002],
+        "hidden_dims": [9527],
         "activations": ["tanh"]
       },
       "mu_projection": {
-        "input_dim": 200,
+        "input_dim": 10,
         "num_layers": 1,
-        "hidden_dims": [200],
+        "hidden_dims": [10],
         "activations": ["tanh"]
       },
       "log_variance_projection": {
-        "input_dim": 200,
+        "input_dim": 10,
         "num_layers": 1,
-        "hidden_dims": [200],
+        "hidden_dims": [10],
         "activations": ["tanh"]
       }
     }
   },
   "iterator": {
     "type": "basic",
-    "batch_size": 64
+    "batch_size": 100
   },
   "trainer": {
     "num_epochs": 10,
@@ -62,7 +52,7 @@
     "grad_clipping": 0.5,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0001
+      "lr": 0.001
     }
   }
 }

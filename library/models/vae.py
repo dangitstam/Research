@@ -1,8 +1,10 @@
+from typing import Dict
 
 import torch
 from allennlp.models.model import Model
 from allennlp.modules import FeedForward
 from overrides import overrides
+
 
 @Model.register("vae")
 class VAE(Model):
@@ -10,7 +12,8 @@ class VAE(Model):
                  encoder: FeedForward,
                  mu_projection: FeedForward,
                  log_variance_projection: FeedForward,
-                 decoder: FeedForward):
+                 decoder: FeedForward,
+                 apply_batchnorm: Dict[str, bool] = None):
         super(VAE, self).__init__(vocab)
         assert mu_projection.get_output_dim() == log_variance_projection.get_output_dim() and \
                mu_projection.get_output_dim() == log_variance_projection.get_output_dim(), \
@@ -29,6 +32,9 @@ class VAE(Model):
         self.log_variance_projection = log_variance_projection
         self.decoder = decoder
 
+        self.batchnorm = torch.nn.BatchNorm1d(mu_projection.get_output_dim())
+        self.apply_batchnorm = apply_batchnorm
+
     @overrides
     def forward(self, input_vector: torch.Tensor):  # pylint: disable=W0221
         """
@@ -39,6 +45,10 @@ class VAE(Model):
         """
         initial_latent_projection = self.encoder(input_vector)
         mu = self.mu_projection(initial_latent_projection)  # pylint: disable=C0103
+
+        if self.apply_batchnorm['mu']:
+            mu = self.batchnorm(mu) # pylint: disable=C0103
+
         log_variance = self.log_variance_projection(initial_latent_projection)
 
         # Generate random noise.
@@ -47,6 +57,9 @@ class VAE(Model):
 
         # Extract sigma and reparameterize.
         sigma = torch.sqrt(torch.exp(log_variance))
+        if self.apply_batchnorm['sigma']:
+            sigma = self.batchnorm(sigma) # pylint: disable=C0103
+
         z = mu + sigma * epsilon # pylint: disable=C0103
 
         return z, mu, sigma

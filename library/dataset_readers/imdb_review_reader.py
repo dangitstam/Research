@@ -11,7 +11,7 @@ from allennlp.data.tokenizers import Tokenizer, WordTokenizer
 from allennlp.data.tokenizers.word_splitter import JustSpacesWordSplitter
 from overrides import overrides
 
-from .util import normalize_raw_text
+from .util import normalize_raw_text, STOP_WORDS
 
 import ujson
 
@@ -58,7 +58,8 @@ class IMDBReviewReader(DatasetReader):
         super().__init__(lazy)
         self._tokenizer = tokenizer or WordTokenizer()
         self._token_indexers = token_indexers or {
-            "tokens": SingleIdTokenIndexer(namespace="tokens", lowercase_tokens=True)
+            "tokens": SingleIdTokenIndexer(namespace="tokens", lowercase_tokens=True),
+            "stopless_tokens": SingleIdTokenIndexer(namespace="stopless_tokens", lowercase_tokens=True)
         }
 
 
