@@ -102,7 +102,7 @@ class BOWTopicModel(Model):
 
         elbo = self.ELBO(input_tokens)
 
-        output_dict['loss'] = -torch.mean(elbo)
+        output_dict['loss'] = -torch.sum(elbo)
         self.metrics['KL-Divergence'](self.kl_divergence)
         self.metrics['Reconstruction'](self.reconstruction)
 
@@ -110,7 +110,8 @@ class BOWTopicModel(Model):
             print(tabulate(self.extract_topics(), headers=["Topic #", "Words"]))
             self.step = 0
         else:
-            self.step += 1
+            if self.training:
+                self.step += 1
 
         return output_dict
 

@@ -3,10 +3,9 @@
     "type": "imdb_review_reader"
   },
   "train_data_path": "data/train_unsup_10k.jsonl",
-  "validation_data_path": "data/valid_labeled_small.jsonl",
-  "datasets_for_vocab_creation": ["train"],
+  "validation_data_path": "data/valid_unsup_1k.jsonl",
   "vocabulary": {
-    "max_vocab_size": 10000
+    "directory_path": "vocabulary"
   },
   "model": {
     "type": "BOWTopicModel",
@@ -48,10 +47,9 @@
   "trainer": {
     "num_epochs": 10,
     "cuda_device": -1,
-    "grad_clipping": 0.5,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0001
+      "lr": 0.001
     }
   }
 }
