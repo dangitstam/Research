@@ -2,6 +2,7 @@ import json
 from collections import Counter
 from typing import Dict, Optional
 
+import numpy as np
 import torch
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
@@ -39,6 +40,8 @@ class BOWTopicModel(Model):
     def __init__(self, vocab: Vocabulary,
                  vae: VAE,
                  initializer: InitializerApplicator = InitializerApplicator(),
+                 background_data_path: str = None,
+                 update_bg: bool = True,
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
         super(BOWTopicModel, self).__init__(vocab, regularizer)
 
@@ -50,24 +53,38 @@ class BOWTopicModel(Model):
         self.vocab = vocab
         self.vae = vae
 
+        self.z_dropout = torch.nn.Dropout(p=0.2)
+
         # Loss functions.
         self.classification_criterion = torch.nn.CrossEntropyLoss()
 
         # Note that the VAE's encoder is the initial projection into the latent space.
-        self.latent_dim = vae.encoder.get_output_dim()
-
-        # Batchnorm to be applied throughout inference.
-        self.batchnorm = torch.nn.BatchNorm1d(self.latent_dim)
+        self.latent_dim = vae.mu_projection.get_output_dim()
 
         # Establish the stopless dimension.
         for _, word in self.vocab.get_index_to_token_vocabulary().items():
-            if word not in STOP_WORDS:
-                self.vocab.add_token_to_namespace(word, "stopless")
+            #if word not in STOP_WORDS:
+            self.vocab.add_token_to_namespace(word, "stopless")
+
+        # Batchnorm to be applied throughout inference.
+        vocab_size = self.vocab.get_vocab_size("stopless")
+        self.batchnorm = torch.nn.BatchNorm1d(vocab_size, eps=0.001, momentum=0.001, affine=True)
+        self.batchnorm.weight.data.copy_(torch.from_numpy(np.ones(vocab_size)))
+        self.batchnorm.weight.requires_grad = False
 
         # Learnable bias and latent topics.
-        alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
-        self.alpha = torch.nn.Parameter(alpha)
-        torch.nn.init.uniform_(self.alpha)
+        #bg_freq_file = '../student/data/tam/bgfreq.json'
+        #alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
+        if background_data_path is not None:
+            alpha = self._compute_background_log_frequency(background_data_path)
+            if update_bg:
+                self.alpha = torch.nn.Parameter(alpha, requires_grad=True)
+            else:
+                self.alpha = torch.nn.Parameter(alpha, requires_grad=False)
+        else:
+            alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
+            self.alpha = torch.nn.Parameter(alpha)
+            torch.nn.init.uniform_(self.alpha)
 
         beta = torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size("stopless"))
         self.beta = torch.nn.Parameter(beta)
@@ -132,22 +149,27 @@ class BOWTopicModel(Model):
         # Variational Inference.
         z, mu, sigma = self.vae(bow)  # pylint: disable=C0103
 
+        z_do = self.z_dropout(z)
+
         # For better interpretibility of topics.
-        z = torch.softmax(z, dim=-1)  # pylint: disable=C0103
+        theta = torch.softmax(z_do, dim=-1)  # pylint: disable=C0103
 
         # Reconstruction log likelihood.
-        reconstructed_bow = z.matmul(self.beta) + self.alpha
-        log_reconstructed_bow = log_softmax(reconstructed_bow, dim=-1)
-        reconstruction_log_likelihood = torch.mean(bow * log_reconstructed_bow, dim=-1)
+        reconstructed_bow = theta.matmul(self.beta) + self.alpha
 
-        negative_kl_divergence = 1 + torch.log(1e-8 + sigma ** 2) - mu ** 2 - sigma ** 2
+        reconstructed_bow_bn = self.batchnorm(reconstructed_bow)
+
+        log_reconstructed_bow = log_softmax(reconstructed_bow_bn + 1e-10, dim=-1)
+        reconstruction_log_likelihood = torch.sum(bow * log_reconstructed_bow, dim=-1)
+
+        negative_kl_divergence = 1 + torch.log(sigma ** 2) - mu ** 2 - sigma ** 2
         negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)
         self.kl_divergence = -torch.mean(negative_kl_divergence).item()
         self.reconstruction = -torch.mean(reconstruction_log_likelihood)
 
         # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[P(x | z, y)]
         # Shape: (batch, )
-        elbo = reconstruction_log_likelihood  + negative_kl_divergence
+        elbo = reconstruction_log_likelihood + negative_kl_divergence
 
         return elbo
 
@@ -185,20 +207,22 @@ class BOWTopicModel(Model):
         log_term_frequency = torch.FloatTensor(self.vocab.get_vocab_size())
         for i in range(self.vocab.get_vocab_size()):
             token = self.vocab.get_token_from_index(i)
-            if token in precomputed_word_counts:
+            if token == DEFAULT_OOV_TOKEN or token == DEFAULT_PADDING_TOKEN:
+                log_term_frequency[i] = 1e-12
+            elif token in precomputed_word_counts:
                 log_term_frequency[i] = precomputed_word_counts[token]
 
         log_term_frequency = torch.log(log_term_frequency)
 
         # At this point, padding and UNKNOWN are -inf.
-        log_term_frequency[0] = 0
-        log_term_frequency[1] = 0
+        #log_term_frequency[0] = 0
+        #log_term_frequency[1] = 0
 
         return log_term_frequency
 
     @overrides
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        return {metric_name: metric.get_metric(reset) for metric_name, metric in self.metrics.items()}
+        return {metric_name: float(metric.get_metric(reset)) for metric_name, metric in self.metrics.items()}
 
     def extract_topics(self, k=20):
         """
@@ -210,6 +234,14 @@ class BOWTopicModel(Model):
         words = [self.vocab.get_token_from_index(i, "stopless") for i in words]
 
         topics = []
+
+        word_strengths = list(zip(words, self.alpha.tolist()))
+        sorted_by_strength = sorted(word_strengths,
+                                    key=lambda x: x[1],
+                                    reverse=True)
+        background = [x[0] for x in sorted_by_strength][:k]
+        topics.append(('bg', background))
+
         for i, topic in enumerate(self.beta):
             word_strengths = list(zip(words, topic.tolist()))
             sorted_by_strength = sorted(word_strengths,

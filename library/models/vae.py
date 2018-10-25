@@ -1,5 +1,6 @@
 from typing import Dict
 
+import numpy as np
 import torch
 from allennlp.models.model import Model
 from allennlp.modules import FeedForward
@@ -31,8 +32,12 @@ class VAE(Model):
         self.mu_projection = mu_projection
         self.log_variance_projection = log_variance_projection
         self.decoder = decoder
+        self.dropout = torch.nn.Dropout(0.2)
 
-        self.batchnorm = torch.nn.BatchNorm1d(mu_projection.get_output_dim())
+        self.batchnorm = torch.nn.BatchNorm1d(mu_projection.get_output_dim(), eps=0.001, momentum=0.001, affine=True)
+        self.batchnorm.weight.data.copy_(torch.from_numpy(np.ones(mu_projection.get_output_dim())))
+        self.batchnorm.weight.requires_grad = False
+
         self.apply_batchnorm = apply_batchnorm
 
     @overrides
@@ -44,7 +49,8 @@ class VAE(Model):
         z is the result of the reparameterization trick (Autoencoding Variational Bayes (Kingma et al.)).
         """
         initial_latent_projection = self.encoder(input_vector)
-        mu = self.mu_projection(initial_latent_projection)  # pylint: disable=C0103
+        initial_latent_projection_do = self.dropout(initial_latent_projection)
+        mu = self.mu_projection(initial_latent_projection_do)  # pylint: disable=C0103
 
         if self.apply_batchnorm['mu']:
             mu = self.batchnorm(mu) # pylint: disable=C0103
