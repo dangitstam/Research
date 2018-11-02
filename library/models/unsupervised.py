@@ -11,11 +11,11 @@ from allennlp.nn import InitializerApplicator, RegularizerApplicator
 from allennlp.training.metrics import Average
 from overrides import overrides
 from tabulate import tabulate
+from torch.nn.functional import log_softmax
 
 # TODO: Explore stopless version.
 from library.dataset_readers.util import STOP_WORDS
 from library.models.vae import VAE
-from torch.nn.functional import log_softmax
 
 
 @Model.register("BOWTopicModel")
@@ -69,12 +69,10 @@ class BOWTopicModel(Model):
         # Batchnorm to be applied throughout inference.
         vocab_size = self.vocab.get_vocab_size("stopless")
         self.batchnorm = torch.nn.BatchNorm1d(vocab_size, eps=0.001, momentum=0.001, affine=True)
-        self.batchnorm.weight.data.copy_(torch.from_numpy(np.ones(vocab_size)))
+        self.batchnorm.weight.data.copy_(torch.ones(vocab_size, dtype=torch.float64))
         self.batchnorm.weight.requires_grad = False
 
         # Learnable bias and latent topics.
-        #bg_freq_file = '../student/data/tam/bgfreq.json'
-        #alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
         if background_data_path is not None:
             alpha = self._compute_background_log_frequency(background_data_path)
             if update_bg:
@@ -214,10 +212,6 @@ class BOWTopicModel(Model):
                 log_term_frequency[i] = precomputed_word_counts[token]
 
         log_term_frequency = torch.log(log_term_frequency)
-
-        # At this point, padding and UNKNOWN are -inf.
-        #log_term_frequency[0] = 0
-        #log_term_frequency[1] = 0
 
         return log_term_frequency
 

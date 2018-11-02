@@ -1,29 +1,34 @@
 import json
+from collections import Counter
 from typing import Dict, Optional
 
 import torch
-from torch.nn.modules.linear import Linear
-
-from allennlp.data.vocabulary import Vocabulary
+from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
+                                      Vocabulary)
 from allennlp.models.archival import load_archive
 from allennlp.models.model import Model
-from allennlp.modules import Seq2VecEncoder, TextFieldEmbedder
+from allennlp.modules import Seq2VecEncoder, TextFieldEmbedder, FeedForward
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from allennlp.training.metrics import Average, CategoricalAccuracy
 from overrides import overrides
+from torch.nn.functional import log_softmax
+from torch.nn.modules.linear import Linear
 
-from library.dataset_readers.util import STOP_WORDS  # TODO: Explore stopless version.
+from library.dataset_readers.util import STOP_WORDS
 from library.models.vae import VAE
 
 from .util import (compute_bow_vector, log_standard_categorical,
                    sort_unsupervised_instances)
 
 
-@Model.register("BOWSeq2VecClassifier")
-class BOWSeq2VecClassifier(Model):
+# TODO: A seq2vec addition will require a separate dataset reader.
+# Construct a new dataset that contains sentiment / full text / filtered text.
+
+@Model.register("BOWTopicModelSemiSupervised")
+class BOWTopicModelSemiSupervised(Model):
     """
-    Joint topic model and text classifier, training the VAE in a semi-supervised
-    environment (https://arxiv.org/abs/1406.5298).
+    VAE topic model trained in a semi-supervised environment
+    (https://arxiv.org/abs/1406.5298).
 
     Parameters
     ----------
@@ -43,46 +48,64 @@ class BOWSeq2VecClassifier(Model):
         If provided, will be used to calculate the regularization penalty during training.
     """
     def __init__(self, vocab: Vocabulary,
-                 encoder: Seq2VecEncoder,
                  vae: VAE,
-                 text_field_embedder: TextFieldEmbedder,
-                 precomputed_word_counts: str = None,
+                 classification_layer: FeedForward,
+                 background_data_path: str = None,
+                 update_bg: bool = True,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
-        super(BOWSeq2VecClassifier, self).__init__(vocab, regularizer)
+        super(BOWTopicModelSemiSupervised, self).__init__(vocab, regularizer)
 
         self.metrics = {
             'KL-Divergence': Average(),
-            'Accuracy': CategoricalAccuracy()
+            'Reconstruction': Average(),
+            'Accuracy': Average()
         }
 
         self.vocab = vocab
-        self.encoder = encoder
         self.vae = vae
-        self.text_field_embedder = text_field_embedder
+        self.classification_layer = classification_layer
+
+        self.z_dropout = torch.nn.Dropout(p=0.2)
 
         # Loss functions.
         self.classification_criterion = torch.nn.CrossEntropyLoss()
 
-        # Log softmax for computing loss on the bag of words.
-        self.log_softmax = torch.nn.LogSoftmax()
-
-        # Background log frequency vector.
-        self.log_term_frequency = self._compute_background_log_frequency(precomputed_word_counts)
-
         # Note that the VAE's encoder is the initial projection into the latent space.
-        self.latent_dim = vae.encoder.get_output_dim()
-        feature_dim = self.encoder.get_output_dim() + self.latent_dim
-        self.output_projection = Linear(feature_dim, 2)
+        self.latent_dim = vae.mu_projection.get_output_dim()
 
-        # The latent topics learned.
-        self.beta = torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size())
-        self.beta = torch.nn.Parameter(self.beta)
+        # Establish the stopless dimension.
+        for _, word in self.vocab.get_index_to_token_vocabulary().items():
+            #if word not in STOP_WORDS:
+            self.vocab.add_token_to_namespace(word, "stopless")
+
+        # Batchnorm to be applied throughout inference.
+        vocab_size = self.vocab.get_vocab_size("stopless")
+        self.batchnorm = torch.nn.BatchNorm1d(vocab_size, eps=0.001, momentum=0.001, affine=True)
+        self.batchnorm.weight.data.copy_(torch.ones(vocab_size, dtype=torch.float64))
+        self.batchnorm.weight.requires_grad = False
+
+        # Learnable bias and latent topics.
+        if background_data_path is not None:
+            alpha = self._compute_background_log_frequency(background_data_path)
+            if update_bg:
+                self.alpha = torch.nn.Parameter(alpha, requires_grad=True)
+            else:
+                self.alpha = torch.nn.Parameter(alpha, requires_grad=False)
+        else:
+            alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
+            self.alpha = torch.nn.Parameter(alpha)
+            torch.nn.init.uniform_(self.alpha)
+
+        beta = torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size("stopless"))
+        self.beta = torch.nn.Parameter(beta)
         torch.nn.init.uniform_(self.beta)
 
-        # Given there's two loss functions that both have a KL-Divergence term, to better keep track of it
-        # as a metric, store it here and zero it out before computing loss.
+        # For computing metrics.
         self.kl_divergence = 0
+        self.reconstruction = 0
+
+        self.step = 0
 
         initializer(self)
 
@@ -105,6 +128,7 @@ class BOWSeq2VecClassifier(Model):
         # so there's no need to negate it.
         output_dict['loss'] = -L + classification_loss - U
         self.metrics['KL-Divergence'](self.kl_divergence)
+        self.metrics['Reconstruction'](self.reconstruction)
 
         return output_dict
 
@@ -124,7 +148,7 @@ class BOWSeq2VecClassifier(Model):
         if input_tokens.size(0) == 0:
             return 0, 0
 
-        elbo, logits = self.ELBO(input_tokens)
+        elbo, logits = self.ELBO({'tokens': input_tokens})
 
         # TODO: Alpha parameter on classification loss.
         # Supplementary classification loss.
@@ -145,7 +169,7 @@ class BOWSeq2VecClassifier(Model):
         if input_tokens.size(0) == 0:
             return 0
 
-        elbo, logits = self.ELBO(input_tokens)
+        elbo, logits = self.ELBO({'tokens': input_tokens})
 
         # Normalize logits as they would be before prediction.
         logits = torch.softmax(logits, dim=-1)
@@ -156,10 +180,10 @@ class BOWSeq2VecClassifier(Model):
 
         return torch.mean(L + H)
 
+
     def ELBO(self, input_tokens: torch.Tensor):  # pylint: disable=C0103
         """
-        Computes ELBO loss:
-        KL-Divergence, reconstruction, and log likelihood of the labels assuming a uniform prior.
+        Computes ELBO loss: -KL-Divergence + reconstruction log likelihood.
 
         :param input_tokens: ``torch.Tensor``
             The tokenized input, expected as (batch, sequence length)
@@ -167,45 +191,66 @@ class BOWSeq2VecClassifier(Model):
         Returns both ELBO and the classification logits for convenience.
         """
 
-        # Encode the current input text, incorporating previous hidden state if available.
-        # Shape: (batch x BPTT limit x hidden size)
-        input_tokens = {'tokens': input_tokens}  # AllenNLP constructs expect a dictionary.
-        embedded_input = self.text_field_embedder(input_tokens)
-        input_mask = util.get_text_field_mask(input_tokens)
-        encoded_input = self.encoder(embedded_input, input_mask)
+        device = input_tokens['tokens'].device
 
         # Bag-of-words representation.
-        bow = compute_bow_vector(self.vocab, input_tokens)
+        bow = self._compute_stopless_bow(input_tokens).to(device=device)
 
         # Variational Inference.
         z, mu, sigma = self.vae(bow)  # pylint: disable=C0103
 
+        z_do = self.z_dropout(z)
+
         # For better interpretibility of topics.
-        z = torch.softmax(z, dim=-1)
+        theta = torch.softmax(z_do, dim=-1)  # pylint: disable=C0103
 
-        features = torch.cat([encoded_input, z], dim=-1)
+        # Classification: Use the topic vector `theta`.
+        logits = self.classification_layer(theta)
 
-        # Train the VAE to make the latent features rich.
-        reconstructed_bow = z.matmul(self.beta) + self.log_term_frequency
-        log_reconstructed_bow = self.log_softmax(reconstructed_bow)
-        reconstruction_loss = -torch.sum(bow * log_reconstructed_bow, dim=-1)
+        # Reconstruction log likelihood.
+        reconstructed_bow = theta.matmul(self.beta) + self.alpha
 
-        # Compute logits.
-        # Shape: (batch x num_classes)
-        logits = self.output_projection(features)
+        reconstructed_bow_bn = self.batchnorm(reconstructed_bow)
 
-        # We assume a uniform prior for y.
-        label_prior = -log_standard_categorical(logits)
+        log_reconstructed_bow = log_softmax(reconstructed_bow_bn + 1e-10, dim=-1)
+        reconstruction_log_likelihood = torch.sum(bow * log_reconstructed_bow, dim=-1)
 
         negative_kl_divergence = 1 + torch.log(sigma ** 2) - mu ** 2 - sigma ** 2
-        negative_kl_divergence = 0.5 * negative_kl_divergence.sum()
-        self.kl_divergence += -negative_kl_divergence.item()
+        negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)
+        self.kl_divergence = -torch.mean(negative_kl_divergence).item()
+        self.reconstruction = -torch.mean(reconstruction_log_likelihood)
 
-        # Joint learning of classification and the VAE for labeled instances.
-        # ELBO = E[P(x | z, y) + P(y)] - KL-Div(q(z | x, y), P(z))
-        elbo = -reconstruction_loss + label_prior + negative_kl_divergence
+        # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[P(x | z, y)]
+        # Shape: (batch, )
+        elbo = reconstruction_log_likelihood + negative_kl_divergence
 
         return elbo, logits
+
+    def _compute_stopless_bow(self, input_tokens: Dict[str, torch.Tensor]):
+        """
+        Return a vector representation of words in the stopless dimension.
+
+        :param input_tokens: ``torch.Tensor``
+            A (batch, sequence length) size tensor.
+        """
+
+        batch_size = input_tokens['tokens'].size(0)
+        stopless_bow = torch.zeros(batch_size, self.vocab.get_vocab_size("stopless")).float()
+        stopless_token_to_index = self.vocab.get_token_to_index_vocabulary('stopless')
+        for row, example in enumerate(input_tokens['tokens']):
+            word_counts = Counter()
+            words = [self.vocab.get_token_from_index(index.item()) for index in example]
+            word_counts.update(words)
+
+            # Remove padding and unknown tokens.
+            words = filter(lambda x: x not in (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN), words)
+            for word in words:
+                if word in stopless_token_to_index:
+                    # Increment the count at the word's stopless index for the current row.
+                    stopless_word_index = self.vocab.get_token_index(word, "stopless")
+                    stopless_bow[row][stopless_word_index] = word_counts[word]
+
+        return stopless_bow
 
     def _compute_background_log_frequency(self, precomputed_word_counts: str):
         """ Load in the word counts from the JSON file and compute the
@@ -214,17 +259,43 @@ class BOWSeq2VecClassifier(Model):
         log_term_frequency = torch.FloatTensor(self.vocab.get_vocab_size())
         for i in range(self.vocab.get_vocab_size()):
             token = self.vocab.get_token_from_index(i)
-            if token in precomputed_word_counts:
+            if token == DEFAULT_OOV_TOKEN or token == DEFAULT_PADDING_TOKEN:
+                log_term_frequency[i] = 1e-12
+            elif token in precomputed_word_counts:
                 log_term_frequency[i] = precomputed_word_counts[token]
 
         log_term_frequency = torch.log(log_term_frequency)
-
-        # At this point, padding and UNKNOWN are -inf.
-        log_term_frequency[0] = 0
-        log_term_frequency[1] = 0
 
         return log_term_frequency
 
     @overrides
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        return {metric_name: metric.get_metric(reset) for metric_name, metric in self.metrics.items()}
+        return {metric_name: float(metric.get_metric(reset)) for metric_name, metric in self.metrics.items()}
+
+    def extract_topics(self, k=20):
+        """
+        Given the learned (topic, vocabulary size) beta, print the
+        top k words from each topic.
+        """
+
+        words = list(range(self.beta.size(1)))
+        words = [self.vocab.get_token_from_index(i, "stopless") for i in words]
+
+        topics = []
+
+        word_strengths = list(zip(words, self.alpha.tolist()))
+        sorted_by_strength = sorted(word_strengths,
+                                    key=lambda x: x[1],
+                                    reverse=True)
+        background = [x[0] for x in sorted_by_strength][:k]
+        topics.append(('bg', background))
+
+        for i, topic in enumerate(self.beta):
+            word_strengths = list(zip(words, topic.tolist()))
+            sorted_by_strength = sorted(word_strengths,
+                                        key=lambda x: x[1],
+                                        reverse=True)
+            topic = [x[0] for x in sorted_by_strength][:k]
+            topics.append((i, topic))
+
+        return topics
