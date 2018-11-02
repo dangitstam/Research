@@ -142,9 +142,10 @@ class BOWTopicModel(Model):
         Returns both ELBO and the classification logits for convenience.
         """
 
+        device = input_tokens['tokens'].device
+
         # Bag-of-words representation.
-        # bow = compute_bow_vector(self.vocab, input_tokens)
-        bow = self._compute_stopless_bow(input_tokens)
+        bow = self._compute_stopless_bow(input_tokens).to(device=device)
 
         # Variational Inference.
         z, mu, sigma = self.vae(bow)  # pylint: disable=C0103

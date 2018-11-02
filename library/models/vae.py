@@ -48,6 +48,7 @@ class VAE(Model):
 
         z is the result of the reparameterization trick (Autoencoding Variational Bayes (Kingma et al.)).
         """
+
         initial_latent_projection = self.encoder(input_vector)
         initial_latent_projection_do = self.dropout(initial_latent_projection)
         mu = self.mu_projection(initial_latent_projection_do)  # pylint: disable=C0103
@@ -59,7 +60,7 @@ class VAE(Model):
 
         # Generate random noise.
         # Shape: (batch, latent_dim)
-        epsilon = torch.randn(mu.size(0), mu.size(-1))
+        epsilon = torch.randn(mu.size(0), mu.size(-1)).to(device=mu.device)
 
         # Extract sigma and reparameterize.
         sigma = torch.sqrt(torch.exp(log_variance))
