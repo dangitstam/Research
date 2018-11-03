@@ -97,39 +97,31 @@ def main():
     test_examples += directory_to_jsons(test_neg_dir)
     assert len(test_examples) == 25000
 
-    # In the paper, they use a combined set 65k training examples (labeled and
-    # unlabeled) for the unsupervised portion of training.
+    # 25K is labelled, 50K is not.
+    # Select a validation set of 5K and set it aside.
     #
-    # They then train a separate classifier for interpreting the results of the
-    # final hidden state output of the TopicRNN into positive or negative sentiment.
-    #
-    # "train_unsup.jsonl" will include all 50k unlabeled samples with 10K randomly selected
-    # labeled examples. The remaining labeled samples will be used for validation.
-    #
-    # A full version of the labeled training data will also be saved for training the classifier
-    # (20K training, 5K validation).
-    train_unsup_out = os.path.join(args.save_dir, "train_unsup.jsonl")
-    valid_unsup_out = os.path.join(args.save_dir, "valid_unsup.jsonl")
-    train_out = os.path.join(args.save_dir, "train_labeled.jsonl")
-    valid_out = os.path.join(args.save_dir, "valid_labeled.jsonl")
+    # Create three training sets, all increasing in the ratio of labelled
+    # to unlabelled data: start with 5:50, 10:50, 20:50.
+    train_5k_out = os.path.join(args.save_dir, "train_5k_labelled.jsonl")
+    train_10k_out = os.path.join(args.save_dir, "train_10k_labelled.jsonl")
+    train_20k_out = os.path.join(args.save_dir, "train_20k_labelled.jsonl")
+    valid_out = os.path.join(args.save_dir, "valid.jsonl")
     test_out = os.path.join(args.save_dir, "test.jsonl")
 
-    # Shuffle training and take the first 15K examples.
+    # Shuffle training and save a validation set.
     random.Random(args.seed).shuffle(train_examples)
-    train_unsup_examples += train_examples[:15000]
-    assert len(train_unsup_examples) == 65000
+    valid_examples = train_examples[:5000]
+    print("Saving validation set:")
+    write_jsons_to_file(valid_examples, valid_out)
 
-    # Remainder to serve as validation.
-    valid_unsup_examples = train_examples[15000:]
-    assert len(valid_unsup_examples) == 10000
+    print("Saving 5K labelled, 50K unlabelled set:")
+    write_jsons_to_file(train_unsup_examples + train_examples[5000:10000], train_5k_out)
 
-    print("Saving training and validation unsupervised examples:")
-    write_jsons_to_file(train_unsup_examples, train_unsup_out)
-    write_jsons_to_file(valid_unsup_examples, valid_unsup_out)
+    print("Saving 10K labelled, 45K unlabelled set:")
+    write_jsons_to_file(train_unsup_examples[:45000] + train_examples[5000:15000], train_10k_out)
 
-    print("Saving training and valdiation labeled examples:")
-    write_jsons_to_file(train_examples[:20000], train_out)
-    write_jsons_to_file(train_examples[20000:], valid_out)
+    print("Saving 20K labelled, 35K unlabelled set:")
+    write_jsons_to_file(train_unsup_examples[:35000] + train_examples[5000:], train_20k_out)
 
     print("Saving test labeled examples:")
     write_jsons_to_file(test_examples, test_out)
@@ -157,8 +149,8 @@ def directory_to_jsons(data_dir):
             example_text = file.read()
             example = {
                 "id": int(example_id),
-                "text": example_text,
-                "sentiment": int(example_sentiment)
+                "sentiment": int(example_sentiment),
+                "text": example_text
             }
             jsons.append(example)
 

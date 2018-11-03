@@ -2,24 +2,23 @@ import json
 from collections import Counter
 from typing import Dict, Optional
 
+from tabulate import tabulate
 import torch
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
 from allennlp.models.archival import load_archive
 from allennlp.models.model import Model
-from allennlp.modules import Seq2VecEncoder, TextFieldEmbedder, FeedForward
+from allennlp.modules import FeedForward, Seq2VecEncoder, TextFieldEmbedder
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from allennlp.training.metrics import Average, CategoricalAccuracy
 from overrides import overrides
 from torch.nn.functional import log_softmax
 from torch.nn.modules.linear import Linear
 
-from library.dataset_readers.util import STOP_WORDS
 from library.models.vae import VAE
 
 from .util import (compute_bow_vector, log_standard_categorical,
                    sort_unsupervised_instances)
-
 
 # TODO: A seq2vec addition will require a separate dataset reader.
 # Construct a new dataset that contains sentiment / full text / filtered text.
@@ -34,14 +33,16 @@ class BOWTopicModelSemiSupervised(Model):
     ----------
     vocab : ``Vocabulary``, required
         A Vocabulary, required in order to compute sizes for input/output projections.
-    encoder : ``Seq2VecEncoder``
-        The encoder used to encode input text.
+    classification_layer : ``Feedfoward``
+        Projection from latent topics to classification logits.
     text_field_embedder : ``TextFieldEmbedder``, required
         Used to embed the ``tokens`` ``TextField`` we get as input to the model.
     vae : ``VAE``
         The variational autoencoder used to project the BoW into a latent space.
-    precompued_word_counts: ``str``
-        Path to a JSON file containing word counts accumulated over the training corpus.
+    background_data_path: ``str``
+        Path to a JSON file containing word frequencies accumulated over the training corpus.
+    update_bg: ``bool``:
+        Whether to allow the background frequency to be learnable.
     initializer : ``InitializerApplicator``, optional (default=``InitializerApplicator()``)
         Used to initialize the model parameters.
     regularizer : ``RegularizerApplicator``, optional (default=``None``)
@@ -59,12 +60,14 @@ class BOWTopicModelSemiSupervised(Model):
         self.metrics = {
             'KL-Divergence': Average(),
             'Reconstruction': Average(),
-            'Accuracy': Average()
+            'Accuracy': CategoricalAccuracy(),
+            'Cross_Entropy': Average()
         }
 
         self.vocab = vocab
         self.vae = vae
         self.classification_layer = classification_layer
+        self.num_classes = classification_layer.get_output_dim()
 
         self.z_dropout = torch.nn.Dropout(p=0.2)
 
@@ -80,12 +83,12 @@ class BOWTopicModelSemiSupervised(Model):
             self.vocab.add_token_to_namespace(word, "stopless")
 
         # Batchnorm to be applied throughout inference.
-        vocab_size = self.vocab.get_vocab_size("stopless")
-        self.batchnorm = torch.nn.BatchNorm1d(vocab_size, eps=0.001, momentum=0.001, affine=True)
-        self.batchnorm.weight.data.copy_(torch.ones(vocab_size, dtype=torch.float64))
+        stopless_vocab_size = self.vocab.get_vocab_size("stopless")
+        self.batchnorm = torch.nn.BatchNorm1d(stopless_vocab_size, eps=0.001, momentum=0.001, affine=True)
+        self.batchnorm.weight.data.copy_(torch.ones(stopless_vocab_size, dtype=torch.float64))
         self.batchnorm.weight.requires_grad = False
 
-        # Learnable bias and latent topics.
+        # Learnable bias.
         if background_data_path is not None:
             alpha = self._compute_background_log_frequency(background_data_path)
             if update_bg:
@@ -97,14 +100,19 @@ class BOWTopicModelSemiSupervised(Model):
             self.alpha = torch.nn.Parameter(alpha)
             torch.nn.init.uniform_(self.alpha)
 
+        # Learnable latent topics.
         beta = torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size("stopless"))
         self.beta = torch.nn.Parameter(beta)
         torch.nn.init.uniform_(self.beta)
 
-        # For computing metrics.
+        # Learnable covariates to relate latent topics and labels.
+        covariates = torch.FloatTensor(self.num_classes, self.vocab.get_vocab_size("stopless"))
+        self.covariates = torch.nn.Parameter(covariates)
+        torch.nn.init.uniform_(self.covariates)
+
+        # For computing metrics and printing topics.
         self.kl_divergence = 0
         self.reconstruction = 0
-
         self.step = 0
 
         initializer(self)
@@ -112,23 +120,32 @@ class BOWTopicModelSemiSupervised(Model):
     @overrides
     def forward(self, # pylint: disable=arguments-differ
                 input_tokens: Dict[str, torch.LongTensor],
+                filtered_tokens: Dict[str, torch.LongTensor],
                 sentiment: torch.Tensor,
                 labelled: torch.Tensor):
 
         output_dict = {}
         self.kl_divergence = 0
 
-        (labelled_tokens, labelled_sentiment), (unlabelled_tokens, _) = \
-            sort_unsupervised_instances(input_tokens['tokens'], sentiment, labelled)
+        (_, labelled_filtered_tokens, labelled_sentiment), (_, unlabelled_filtered_tokens) = \
+            sort_unsupervised_instances(input_tokens['tokens'], filtered_tokens['tokens'], sentiment, labelled)
 
-        L, classification_loss = self.supervised_forward(labelled_tokens, labelled_sentiment)  # pylint: disable=C0103
-        U = self.unsupervised_forward(unlabelled_tokens)   # pylint: disable=C0103
+        L, classification_loss = self.supervised_forward(labelled_filtered_tokens, labelled_sentiment)  # pylint: disable=C0103
+        U = self.unsupervised_forward(unlabelled_filtered_tokens)   # pylint: disable=C0103
 
         # Joint supervised and unsupervised learning. 'classification_loss' is already cross entropy loss
         # so there's no need to negate it.
-        output_dict['loss'] = -L + classification_loss - U
+        output_dict['loss'] = torch.sum(-L + classification_loss - U, dim=0)
         self.metrics['KL-Divergence'](self.kl_divergence)
         self.metrics['Reconstruction'](self.reconstruction)
+
+        # While training, it's helpful to see how the topics are changing.
+        if self.training and self.step == 100:
+            print(tabulate(self.extract_topics(), headers=["Topic #", "Words"]))
+            self.step = 0
+        else:
+            if self.training:
+                self.step += 1
 
         return output_dict
 
@@ -150,12 +167,20 @@ class BOWTopicModelSemiSupervised(Model):
 
         elbo, logits = self.ELBO({'tokens': input_tokens})
 
+        # Collect the correct loss since the class labels are known.
+        elbo = torch.gather(elbo, 1, sentiment.reshape(-1, 1))
+
         # TODO: Alpha parameter on classification loss.
         # Supplementary classification loss.
         classification_loss = self.classification_criterion(logits, sentiment)
-        self.metrics['Accuracy'](logits, sentiment)
 
-        return torch.mean(elbo), torch.mean(classification_loss)
+        # Scale classification loss by 0.1 * N (it is much smaller than elbo).
+        classification_loss *= 0.1 * (45000 / 20000)
+
+        self.metrics['Accuracy'](logits, sentiment)
+        self.metrics['Cross_Entropy'](classification_loss)
+
+        return torch.sum(elbo), torch.sum(classification_loss)
 
     def unsupervised_forward(self, input_tokens: torch.Tensor): # pylint: disable=C0103
         """
@@ -176,9 +201,9 @@ class BOWTopicModelSemiSupervised(Model):
 
         # Compute q(y | x)(-ELBO) and entropy H(q(y|x)), sum over all labels.
         H = -torch.sum(logits * torch.log(logits + 1e-8), dim=-1) # pylint: disable=C0103
-        L = torch.sum(logits * elbo.unsqueeze(1), dim=-1) # pylint: disable=C0103
+        L = torch.sum(logits * elbo, dim=-1) # pylint: disable=C0103
 
-        return torch.mean(L + H)
+        return L + H
 
 
     def ELBO(self, input_tokens: torch.Tensor):  # pylint: disable=C0103
@@ -204,25 +229,47 @@ class BOWTopicModelSemiSupervised(Model):
         # For better interpretibility of topics.
         theta = torch.softmax(z_do, dim=-1)  # pylint: disable=C0103
 
-        # Classification: Use the topic vector `theta`.
-        logits = self.classification_layer(theta)
+        # Compute q_phi(y | x).
+        logits = self.classification_layer(bow)
 
-        # Reconstruction log likelihood.
-        reconstructed_bow = theta.matmul(self.beta) + self.alpha
+        # reconstruction log likelihood.
+        # TODO: add y here (two ways?)
+        # TODO: Return a (classes, batch, vocabulary) tensor;
+        # - Supervised loss will take the tensor of the correct class for loss.
+        # - Unsupervised loss wil interpolate between the two to marginalize on y.
+        reconstruct_bow = theta.matmul(self.beta) + self.alpha
 
-        reconstructed_bow_bn = self.batchnorm(reconstructed_bow)
+        batch_size = theta.size(0)
+        stopless_vocab_size = self.vocab.get_vocab_size("stopless")
 
-        log_reconstructed_bow = log_softmax(reconstructed_bow_bn + 1e-10, dim=-1)
-        reconstruction_log_likelihood = torch.sum(bow * log_reconstructed_bow, dim=-1)
+        # Expand covariates to (batch, classes, vocabulary).
+        expanded_covariates = self.covariates.expand(batch_size, self.num_classes, stopless_vocab_size)
+
+        # Temporarily reshape to (class, batch, vocabulary) and allow broadcasting to
+        # properly add the bow (batch, vocabulary)
+        reconstruct_bow_cov = expanded_covariates.reshape(self.num_classes, batch_size, -1) + reconstruct_bow
+        reconstruct_bow_cov = reconstruct_bow_cov.reshape(batch_size, self.num_classes, -1)
+
+        # Batchnorm expects the input size to always be the second dimension.
+        reconstruct_bow_cov_bn = self.batchnorm(reconstruct_bow_cov
+                                                .reshape(-1, stopless_vocab_size, self.num_classes))
+        reconstruct_bow_cov_bn = reconstruct_bow_cov_bn.reshape(-1, self.num_classes, stopless_vocab_size)
+
+        # Log loss on empirical frequency.
+        log_reconstruct_bow = log_softmax(reconstruct_bow_cov_bn + 1e-10, dim=-1)
+        probabilities = (log_reconstruct_bow.reshape(-1, batch_size, stopless_vocab_size) * bow)
+
+        # Final shape: (batch, classes)
+        reconstruction_log_likelihood = torch.sum(probabilities, dim=-1).reshape(batch_size, -1)
 
         negative_kl_divergence = 1 + torch.log(sigma ** 2) - mu ** 2 - sigma ** 2
-        negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)
+        negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)  # Shape: (batch, )
         self.kl_divergence = -torch.mean(negative_kl_divergence).item()
         self.reconstruction = -torch.mean(reconstruction_log_likelihood)
 
-        # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[P(x | z, y)]
-        # Shape: (batch, )
-        elbo = reconstruction_log_likelihood + negative_kl_divergence
+        # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[ log P(x | z, y) ]
+        # The reshape is necessary since we are now adding the KL-divergence across classes.
+        elbo = negative_kl_divergence.reshape(-1, 1) + reconstruction_log_likelihood
 
         return elbo, logits
 
@@ -236,19 +283,17 @@ class BOWTopicModelSemiSupervised(Model):
 
         batch_size = input_tokens['tokens'].size(0)
         stopless_bow = torch.zeros(batch_size, self.vocab.get_vocab_size("stopless")).float()
-        stopless_token_to_index = self.vocab.get_token_to_index_vocabulary('stopless')
         for row, example in enumerate(input_tokens['tokens']):
             word_counts = Counter()
-            words = [self.vocab.get_token_from_index(index.item()) for index in example]
+            words = [self.vocab.get_token_from_index(index.item(), 'stopless') for index in example]
             word_counts.update(words)
 
             # Remove padding and unknown tokens.
             words = filter(lambda x: x not in (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN), words)
             for word in words:
-                if word in stopless_token_to_index:
-                    # Increment the count at the word's stopless index for the current row.
-                    stopless_word_index = self.vocab.get_token_index(word, "stopless")
-                    stopless_bow[row][stopless_word_index] = word_counts[word]
+                # Increment the count at the word's stopless index for the current row.
+                stopless_word_index = self.vocab.get_token_index(word, "stopless")
+                stopless_bow[row][stopless_word_index] = word_counts[word]
 
         return stopless_bow
 
@@ -256,9 +301,9 @@ class BOWTopicModelSemiSupervised(Model):
         """ Load in the word counts from the JSON file and compute the
             background log term frequency w.r.t this vocabulary. """
         precomputed_word_counts = json.load(open(precomputed_word_counts, "r"))
-        log_term_frequency = torch.FloatTensor(self.vocab.get_vocab_size())
-        for i in range(self.vocab.get_vocab_size()):
-            token = self.vocab.get_token_from_index(i)
+        log_term_frequency = torch.FloatTensor(self.vocab.get_vocab_size('stopless'))
+        for i in range(self.vocab.get_vocab_size('stopless')):
+            token = self.vocab.get_token_from_index(i, 'stopless')
             if token == DEFAULT_OOV_TOKEN or token == DEFAULT_PADDING_TOKEN:
                 log_term_frequency[i] = 1e-12
             elif token in precomputed_word_counts:

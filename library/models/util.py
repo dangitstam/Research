@@ -33,6 +33,7 @@ def log_standard_categorical(logits: torch.Tensor):
 
 
 def sort_unsupervised_instances(input_tokens: torch.LongTensor,
+                                filtered_tokens: torch.Tensor,
                                 sentiment: torch.LongTensor,
                                 labelled: torch.LongTensor):
     """Given a batch of examples, separate them into labelled and unlablled instances."""
@@ -40,12 +41,14 @@ def sort_unsupervised_instances(input_tokens: torch.LongTensor,
     # Labelled is zero everywhere an example is unlabelled and 1 otherwise.
     labelled_indices = (labelled != 0).nonzero().squeeze()
     labelled_tokens = input_tokens[labelled_indices]
+    labelled_filtered_tokens = filtered_tokens[labelled_indices]
     labelled_sentiment = sentiment[labelled_indices]
 
     unlabelled_indices = (labelled == 0).nonzero().squeeze()
     unlabelled_tokens = input_tokens[unlabelled_indices]
+    unlabelled_filtered_tokens = filtered_tokens[unlabelled_indices]
 
-    return (labelled_tokens, labelled_sentiment), (unlabelled_tokens, None)
+    return (labelled_tokens, labelled_filtered_tokens, labelled_sentiment), (unlabelled_tokens, unlabelled_filtered_tokens)
 
 def compute_bow_vector(vocab: Vocabulary,
                        input_tokens: Dict[str, torch.LongTensor]) -> Dict[str, torch.Tensor]:
