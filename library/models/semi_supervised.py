@@ -56,7 +56,7 @@ class BOWTopicModelSemiSupervised(Model):
                  alpha: float = 0.5,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
-        super(BOWTopicModelSemiSupervised2, self).__init__(vocab, regularizer)
+        super(BOWTopicModelSemiSupervised, self).__init__(vocab, regularizer)
 
         self.metrics = {
             'KL-Divergence': Average(),
@@ -178,7 +178,7 @@ class BOWTopicModelSemiSupervised(Model):
         bow = self._compute_stopless_bow(input_tokens).to(device=device)
 
         # One-hot the sentiment vector before concatenation.
-        sentiment_one_hot = torch.FloatTensor(batch_size, self.num_classes)
+        sentiment_one_hot = torch.FloatTensor(batch_size, self.num_classes).to(device=device)
         sentiment_one_hot.zero_()
         sentiment_one_hot = sentiment_one_hot.scatter_(1, sentiment.reshape(-1, 1), 1)
 
@@ -242,8 +242,8 @@ class BOWTopicModelSemiSupervised(Model):
         for i in range(self.num_classes):
             # Instantiate an artifical labelling for each class.
             # Labels are treated as a latent variable that we marginalize over.
-            sentiment = torch.ones(batch_size).long() * i
-            elbos[i] = self.ELBO(input_tokens, sentiment, true_labelled = False)
+            sentiment = (torch.ones(batch_size).long() * i).to(device=device)
+            elbos[i] = self.ELBO(input_tokens, sentiment, true_labelled=False)
 
         # Bag-of-words representation.
         bow = self._compute_stopless_bow(input_tokens).to(device=device)
