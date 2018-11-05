@@ -233,7 +233,7 @@ class BOWTopicModelSemiSupervised(Model):
         if batch_size == 0:
             return None
 
-        elbos = torch.zeros(self.num_classes, batch_size)
+        elbos = torch.zeros(self.num_classes, batch_size).to(device=device)
         for i in range(self.num_classes):
             # Instantiate an artifical labelling for each class.
             # Labels are treated as a latent variable that we marginalize over.
