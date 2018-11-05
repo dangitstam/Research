@@ -80,11 +80,6 @@ class BOWTopicModelSemiSupervised(Model):
         # Note that the VAE's encoder is the initial projection into the latent space.
         self.latent_dim = vae.mu_projection.get_output_dim()
 
-        # Establish the stopless dimension.
-        for _, word in self.vocab.get_index_to_token_vocabulary().items():
-            #if word not in STOP_WORDS:
-            self.vocab.add_token_to_namespace(word, "stopless")
-
         # Batchnorm to be applied throughout inference.
         stopless_vocab_size = self.vocab.get_vocab_size("stopless")
         self.batchnorm = torch.nn.BatchNorm1d(stopless_vocab_size, eps=0.001, momentum=0.001, affine=True)
