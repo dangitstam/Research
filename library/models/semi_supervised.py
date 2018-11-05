@@ -53,7 +53,7 @@ class BOWTopicModelSemiSupervised(Model):
                  classification_layer: FeedForward,
                  background_data_path: str = None,
                  update_bg: bool = True,
-                 alpha: float = 0.5,
+                 alpha: float = 0.1,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
         super(BOWTopicModelSemiSupervised, self).__init__(vocab, regularizer)
