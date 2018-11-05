@@ -2,7 +2,6 @@ import json
 from collections import Counter
 from typing import Dict, Optional
 
-import numpy as np
 import torch
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
@@ -13,8 +12,6 @@ from overrides import overrides
 from tabulate import tabulate
 from torch.nn.functional import log_softmax
 
-# TODO: Explore stopless version.
-from library.dataset_readers.util import STOP_WORDS
 from library.models.vae import VAE
 
 

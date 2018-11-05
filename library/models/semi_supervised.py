@@ -53,21 +53,24 @@ class BOWTopicModelSemiSupervised(Model):
                  classification_layer: FeedForward,
                  background_data_path: str = None,
                  update_bg: bool = True,
+                 alpha: float = 0.5,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
-        super(BOWTopicModelSemiSupervised, self).__init__(vocab, regularizer)
+        super(BOWTopicModelSemiSupervised2, self).__init__(vocab, regularizer)
 
         self.metrics = {
             'KL-Divergence': Average(),
             'Reconstruction': Average(),
             'Accuracy': CategoricalAccuracy(),
-            'Cross_Entropy': Average()
+            'Cross_Entropy': Average(),
+            'ELBO': Average()
         }
 
         self.vocab = vocab
         self.vae = vae
         self.classification_layer = classification_layer
         self.num_classes = classification_layer.get_output_dim()
+        self.alpha = alpha
 
         self.z_dropout = torch.nn.Dropout(p=0.2)
 
@@ -90,15 +93,15 @@ class BOWTopicModelSemiSupervised(Model):
 
         # Learnable bias.
         if background_data_path is not None:
-            alpha = self._compute_background_log_frequency(background_data_path)
+            background = self._compute_background_log_frequency(background_data_path)
             if update_bg:
-                self.alpha = torch.nn.Parameter(alpha, requires_grad=True)
+                self.background = torch.nn.Parameter(background, requires_grad=True)
             else:
-                self.alpha = torch.nn.Parameter(alpha, requires_grad=False)
+                self.background = torch.nn.Parameter(background, requires_grad=False)
         else:
-            alpha = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
-            self.alpha = torch.nn.Parameter(alpha)
-            torch.nn.init.uniform_(self.alpha)
+            background = torch.FloatTensor(self.vocab.get_vocab_size("stopless"))
+            self.background = torch.nn.Parameter(background)
+            torch.nn.init.uniform_(self.background)
 
         # Learnable latent topics.
         beta = torch.FloatTensor(self.latent_dim, self.vocab.get_vocab_size("stopless"))
@@ -111,8 +114,6 @@ class BOWTopicModelSemiSupervised(Model):
         torch.nn.init.uniform_(self.covariates)
 
         # For computing metrics and printing topics.
-        self.kl_divergence = 0
-        self.reconstruction = 0
         self.step = 0
 
         initializer(self)
@@ -125,19 +126,28 @@ class BOWTopicModelSemiSupervised(Model):
                 labelled: torch.Tensor):
 
         output_dict = {}
-        self.kl_divergence = 0
 
         (_, labelled_filtered_tokens, labelled_sentiment), (_, unlabelled_filtered_tokens) = \
             sort_unsupervised_instances(input_tokens['tokens'], filtered_tokens['tokens'], sentiment, labelled)
 
-        L, classification_loss = self.supervised_forward(labelled_filtered_tokens, labelled_sentiment)  # pylint: disable=C0103
-        U = self.unsupervised_forward(unlabelled_filtered_tokens)   # pylint: disable=C0103
+        L, classification_loss = self.ELBO(labelled_filtered_tokens, labelled_sentiment)  # pylint: disable=C0103
+        U = self.U(unlabelled_filtered_tokens)   # pylint: disable=C0103
 
-        # Joint supervised and unsupervised learning. 'classification_loss' is already cross entropy loss
-        # so there's no need to negate it.
-        output_dict['loss'] = torch.sum(-L + classification_loss - U, dim=0)
-        self.metrics['KL-Divergence'](self.kl_divergence)
-        self.metrics['Reconstruction'](self.reconstruction)
+        # Joint supervised and unsupervised learning. 
+        # classification_loss' is already cross entropy loss so there's no need to negate it.
+        labelled_loss = -torch.sum(L)
+
+        # Note that in evaluation, there is no unlabelled data.
+        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
+        self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
+
+        # Classification loss is significantly smaller than the elbo objective; scale it so that
+        # enough gradient flows through for learning.
+        equalizer = ((labelled_loss + unlabelled_loss) / classification_loss).item()
+
+        J_alpha = (labelled_loss + unlabelled_loss) + (self.alpha * equalizer) * classification_loss  # pylint: disable=C0103
+
+        output_dict['loss'] = J_alpha
 
         # While training, it's helpful to see how the topics are changing.
         if self.training and self.step == 100:
@@ -149,40 +159,72 @@ class BOWTopicModelSemiSupervised(Model):
 
         return output_dict
 
-    def supervised_forward(self,  # pylint: disable=C0103
-                           input_tokens: torch.Tensor,
-                           sentiment: torch.Tensor):
+    def ELBO(self, input_tokens: torch.Tensor,  # pylint: disable=C0103
+             sentiment: torch.Tensor,
+             true_labelled: bool = True):
         """
-        Computes loss for labelled data.
+        Computes ELBO loss for labelled data.
 
         :param input_tokens: ``torch.Tensor``
             The tokenized input, expected as (batch, sequence length)
         :param sentiment: ``torch.Tensor``
             The target class labels, expexted as (batch,)
 
-        Returns the sum of ELBO and the entropy of the predicted classification logits.
         """
-        if input_tokens.size(0) == 0:
-            return 0, 0
+        device = input_tokens.device
+        batch_size = input_tokens.size(0)
 
-        elbo, logits = self.ELBO({'tokens': input_tokens})
+        # Bag-of-words representation.
+        bow = self._compute_stopless_bow(input_tokens).to(device=device)
 
-        # Collect the correct loss since the class labels are known.
-        elbo = torch.gather(elbo, 1, sentiment.reshape(-1, 1))
+        # One-hot the sentiment vector before concatenation.
+        sentiment_one_hot = torch.FloatTensor(batch_size, self.num_classes)
+        sentiment_one_hot.zero_()
+        sentiment_one_hot = sentiment_one_hot.scatter_(1, sentiment.reshape(-1, 1), 1)
 
-        # TODO: Alpha parameter on classification loss.
-        # Supplementary classification loss.
-        classification_loss = self.classification_criterion(logits, sentiment)
+        # Variational Inference, where Z ~ q(z | x, y)
+        z, mu, sigma = self.vae(torch.cat((bow, sentiment_one_hot), dim=-1))  # pylint: disable=C0103
+        z_do = self.z_dropout(z)
 
-        # Scale classification loss by 0.1 * N (it is much smaller than elbo).
-        classification_loss *= 0.1 * (45000 / 20000)
+        # For better interpretibility of topics.
+        theta = torch.softmax(z_do, dim=-1)  # pylint: disable=C0103
 
-        self.metrics['Accuracy'](logits, sentiment)
-        self.metrics['Cross_Entropy'](classification_loss)
+        reconstruction_bow = self.background + theta.matmul(self.beta) + self.covariates[sentiment]
+        reconstructed_bow_bn = self.batchnorm(reconstruction_bow)
 
-        return torch.sum(elbo), torch.sum(classification_loss)
+        # log P(x | y, z) = log softmax(b + z beta + y C)
+        # Final shape: (batch, )
+        log_reconstruction_bow = log_softmax(reconstructed_bow_bn + 1e-10, dim=-1)
+        reconstruction_log_likelihood = torch.sum(bow * log_reconstruction_bow, dim=-1)
 
-    def unsupervised_forward(self, input_tokens: torch.Tensor): # pylint: disable=C0103
+        negative_kl_divergence = 1 + torch.log(sigma ** 2) - mu ** 2 - sigma ** 2
+        negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)  # Shape: (batch, )
+
+        # Uniform prior.
+        prior = -log_standard_categorical(sentiment_one_hot)
+
+        # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[ log P(x | z, y) + log p(y) ]
+        elbo = negative_kl_divergence + reconstruction_log_likelihood + prior
+
+        # Update metrics
+        self.metrics['KL-Divergence'](-torch.mean(negative_kl_divergence))
+        self.metrics['Reconstruction'](-torch.mean(reconstruction_log_likelihood))
+
+        # For convenience: allows proper mapping from example to sentiment if
+        # classification loss is optionally returned here.
+        if true_labelled:
+            logits = self.classification_layer(bow)
+            classification_loss = self.classification_criterion(logits, sentiment)
+
+            # Update metrics.
+            self.metrics['Accuracy'](logits, sentiment)
+            self.metrics['Cross_Entropy'](classification_loss)
+
+            return elbo, classification_loss
+
+        return elbo
+
+    def U(self, input_tokens: torch.Tensor): # pylint: disable=C0103
         """
         Computes loss for unlabelled data.
 
@@ -191,87 +233,31 @@ class BOWTopicModelSemiSupervised(Model):
 
         Returns the sum of ELBO and the entropy of the predicted classification logits.
         """
-        if input_tokens.size(0) == 0:
-            return 0
+        device = input_tokens.device
+        batch_size = input_tokens.size(0)
+        if batch_size == 0:
+            return None
 
-        elbo, logits = self.ELBO({'tokens': input_tokens})
-
-        # Normalize logits as they would be before prediction.
-        logits = torch.softmax(logits, dim=-1)
-
-        # Compute q(y | x)(-ELBO) and entropy H(q(y|x)), sum over all labels.
-        H = -torch.sum(logits * torch.log(logits + 1e-8), dim=-1) # pylint: disable=C0103
-        L = torch.sum(logits * elbo, dim=-1) # pylint: disable=C0103
-
-        return L + H
-
-
-    def ELBO(self, input_tokens: torch.Tensor):  # pylint: disable=C0103
-        """
-        Computes ELBO loss: -KL-Divergence + reconstruction log likelihood.
-
-        :param input_tokens: ``torch.Tensor``
-            The tokenized input, expected as (batch, sequence length)
-
-        Returns both ELBO and the classification logits for convenience.
-        """
-
-        device = input_tokens['tokens'].device
+        elbos = torch.zeros(self.num_classes, batch_size)
+        for i in range(self.num_classes):
+            # Instantiate an artifical labelling for each class.
+            # Labels are treated as a latent variable that we marginalize over.
+            sentiment = torch.ones(batch_size).long() * i
+            elbos[i] = self.ELBO(input_tokens, sentiment, true_labelled = False)
 
         # Bag-of-words representation.
         bow = self._compute_stopless_bow(input_tokens).to(device=device)
 
-        # Variational Inference.
-        z, mu, sigma = self.vae(bow)  # pylint: disable=C0103
+        # Compute q(y | x).
+        # Shape: (batch, num_classes)
+        logits = torch.softmax(self.classification_layer(bow), dim=-1)
 
-        z_do = self.z_dropout(z)
+        # Compute q(y | x)(-ELBO) and entropy H(q(y|x)), sum over all labels.
+        # Reshape elbos to be (batch, num_classes) before the per-class weighting.
+        L_weighted = torch.sum(logits * elbos.t(), dim=-1) # pylint: disable=C0103
+        H = -torch.sum(logits * torch.log(logits + 1e-8), dim=-1) # pylint: disable=C0103
 
-        # For better interpretibility of topics.
-        theta = torch.softmax(z_do, dim=-1)  # pylint: disable=C0103
-
-        # Compute q_phi(y | x).
-        logits = self.classification_layer(bow)
-
-        # reconstruction log likelihood.
-        # TODO: add y here (two ways?)
-        # TODO: Return a (classes, batch, vocabulary) tensor;
-        # - Supervised loss will take the tensor of the correct class for loss.
-        # - Unsupervised loss wil interpolate between the two to marginalize on y.
-        reconstruct_bow = theta.matmul(self.beta) + self.alpha
-
-        batch_size = theta.size(0)
-        stopless_vocab_size = self.vocab.get_vocab_size("stopless")
-
-        # Expand covariates to (batch, classes, vocabulary).
-        expanded_covariates = self.covariates.expand(batch_size, self.num_classes, stopless_vocab_size)
-
-        # Temporarily reshape to (class, batch, vocabulary) and allow broadcasting to
-        # properly add the bow (batch, vocabulary)
-        reconstruct_bow_cov = expanded_covariates.reshape(self.num_classes, batch_size, -1) + reconstruct_bow
-        reconstruct_bow_cov = reconstruct_bow_cov.reshape(batch_size, self.num_classes, -1)
-
-        # Batchnorm expects the input size to always be the second dimension.
-        reconstruct_bow_cov_bn = self.batchnorm(reconstruct_bow_cov
-                                                .reshape(-1, stopless_vocab_size, self.num_classes))
-        reconstruct_bow_cov_bn = reconstruct_bow_cov_bn.reshape(-1, self.num_classes, stopless_vocab_size)
-
-        # Log loss on empirical frequency.
-        log_reconstruct_bow = log_softmax(reconstruct_bow_cov_bn + 1e-10, dim=-1)
-        probabilities = (log_reconstruct_bow.reshape(-1, batch_size, stopless_vocab_size) * bow)
-
-        # Final shape: (batch, classes)
-        reconstruction_log_likelihood = torch.sum(probabilities, dim=-1).reshape(batch_size, -1)
-
-        negative_kl_divergence = 1 + torch.log(sigma ** 2) - mu ** 2 - sigma ** 2
-        negative_kl_divergence = 0.5 * negative_kl_divergence.sum(dim=-1)  # Shape: (batch, )
-        self.kl_divergence = -torch.mean(negative_kl_divergence).item()
-        self.reconstruction = -torch.mean(reconstruction_log_likelihood)
-
-        # ELBO = - KL-Div(q(z | x, y), P(z)) +  E[ log P(x | z, y) ]
-        # The reshape is necessary since we are now adding the KL-divergence across classes.
-        elbo = negative_kl_divergence.reshape(-1, 1) + reconstruction_log_likelihood
-
-        return elbo, logits
+        return L_weighted + H
 
     def _compute_stopless_bow(self, input_tokens: Dict[str, torch.Tensor]):
         """
@@ -281,9 +267,9 @@ class BOWTopicModelSemiSupervised(Model):
             A (batch, sequence length) size tensor.
         """
 
-        batch_size = input_tokens['tokens'].size(0)
+        batch_size = input_tokens.size(0)
         stopless_bow = torch.zeros(batch_size, self.vocab.get_vocab_size("stopless")).float()
-        for row, example in enumerate(input_tokens['tokens']):
+        for row, example in enumerate(input_tokens):
             word_counts = Counter()
             words = [self.vocab.get_token_from_index(index.item(), 'stopless') for index in example]
             word_counts.update(words)
@@ -328,7 +314,7 @@ class BOWTopicModelSemiSupervised(Model):
 
         topics = []
 
-        word_strengths = list(zip(words, self.alpha.tolist()))
+        word_strengths = list(zip(words, self.background.tolist()))
         sorted_by_strength = sorted(word_strengths,
                                     key=lambda x: x[1],
                                     reverse=True)
