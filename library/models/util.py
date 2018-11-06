@@ -32,7 +32,8 @@ def log_standard_categorical(logits: torch.Tensor):
     return cross_entropy
 
 
-def sort_unsupervised_instances(input_tokens: torch.LongTensor,
+def sort_unsupervised_instances(id: torch.LongTensor,
+                                input_tokens: torch.LongTensor,
                                 filtered_tokens: torch.Tensor,
                                 sentiment: torch.LongTensor,
                                 labelled: torch.LongTensor):
@@ -43,12 +44,14 @@ def sort_unsupervised_instances(input_tokens: torch.LongTensor,
     labelled_tokens = input_tokens[labelled_indices]
     labelled_filtered_tokens = filtered_tokens[labelled_indices]
     labelled_sentiment = sentiment[labelled_indices]
+    labelled_id = id[labelled_indices]
 
     unlabelled_indices = (labelled == 0).nonzero().squeeze()
     unlabelled_tokens = input_tokens[unlabelled_indices]
     unlabelled_filtered_tokens = filtered_tokens[unlabelled_indices]
+    unlabelled_id = id[unlabelled_indices]
 
-    return (labelled_tokens, labelled_filtered_tokens, labelled_sentiment), (unlabelled_tokens, unlabelled_filtered_tokens)
+    return (labelled_id, labelled_tokens, labelled_filtered_tokens, labelled_sentiment), (unlabelled_id, unlabelled_tokens, unlabelled_filtered_tokens)
 
 def compute_bow_vector(vocab: Vocabulary,
                        input_tokens: Dict[str, torch.LongTensor]) -> Dict[str, torch.Tensor]:

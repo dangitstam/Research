@@ -111,10 +111,14 @@ class BOWTopicModelSemiSupervised(Model):
         # For computing metrics and printing topics.
         self.step = 0
 
+        # Bow cache: computing bag-of-words everytime is expensive.
+        self._id_to_bow = {}
+
         initializer(self)
 
     @overrides
     def forward(self, # pylint: disable=arguments-differ
+                id: torch.LongTensor,
                 input_tokens: Dict[str, torch.LongTensor],
                 filtered_tokens: Dict[str, torch.LongTensor],
                 sentiment: torch.Tensor,
@@ -122,11 +126,11 @@ class BOWTopicModelSemiSupervised(Model):
 
         output_dict = {}
 
-        (_, labelled_filtered_tokens, labelled_sentiment), (_, unlabelled_filtered_tokens) = \
-            sort_unsupervised_instances(input_tokens['tokens'], filtered_tokens['tokens'], sentiment, labelled)
+        (labelled_id, _, labelled_filtered_tokens, labelled_sentiment), (unlabelled_id, _, unlabelled_filtered_tokens) = \
+            sort_unsupervised_instances(id, input_tokens['tokens'], filtered_tokens['tokens'], sentiment, labelled)
 
-        L, classification_loss = self.ELBO(labelled_filtered_tokens, labelled_sentiment)  # pylint: disable=C0103
-        U = self.U(unlabelled_filtered_tokens)   # pylint: disable=C0103
+        L, classification_loss = self.ELBO(labelled_id, labelled_filtered_tokens, labelled_sentiment)  # pylint: disable=C0103
+        U = self.U(unlabelled_id, unlabelled_filtered_tokens)   # pylint: disable=C0103
 
         # Joint supervised and unsupervised learning. 
         # classification_loss' is already cross entropy loss so there's no need to negate it.
@@ -154,7 +158,9 @@ class BOWTopicModelSemiSupervised(Model):
 
         return output_dict
 
-    def ELBO(self, input_tokens: torch.Tensor,  # pylint: disable=C0103
+    def ELBO(self,
+             id: torch.Tensor,
+             input_tokens: torch.Tensor,  # pylint: disable=C0103
              sentiment: torch.Tensor,
              true_labelled: bool = True):
         """
@@ -170,7 +176,7 @@ class BOWTopicModelSemiSupervised(Model):
         batch_size = input_tokens.size(0)
 
         # Bag-of-words representation.
-        bow = self._compute_stopless_bow(input_tokens).to(device=device)
+        bow = self._compute_stopless_bow(id, input_tokens).to(device=device)
 
         # One-hot the sentiment vector before concatenation.
         sentiment_one_hot = torch.FloatTensor(batch_size, self.num_classes).to(device=device)
@@ -219,7 +225,7 @@ class BOWTopicModelSemiSupervised(Model):
 
         return elbo
 
-    def U(self, input_tokens: torch.Tensor): # pylint: disable=C0103
+    def U(self, id: torch.Tensor, input_tokens: torch.Tensor): # pylint: disable=C0103
         """
         Computes loss for unlabelled data.
 
@@ -238,10 +244,10 @@ class BOWTopicModelSemiSupervised(Model):
             # Instantiate an artifical labelling for each class.
             # Labels are treated as a latent variable that we marginalize over.
             sentiment = (torch.ones(batch_size).long() * i).to(device=device)
-            elbos[i] = self.ELBO(input_tokens, sentiment, true_labelled=False)
+            elbos[i] = self.ELBO(id, input_tokens, sentiment, true_labelled=False)
 
         # Bag-of-words representation.
-        bow = self._compute_stopless_bow(input_tokens).to(device=device)
+        bow = self._compute_stopless_bow(id, input_tokens).to(device=device)
 
         # Compute q(y | x).
         # Shape: (batch, num_classes)
@@ -254,7 +260,7 @@ class BOWTopicModelSemiSupervised(Model):
 
         return L_weighted + H
 
-    def _compute_stopless_bow(self, input_tokens: Dict[str, torch.Tensor]):
+    def _compute_stopless_bow(self, id: torch.Tensor, input_tokens: torch.Tensor):
         """
         Return a vector representation of words in the stopless dimension.
 
@@ -265,6 +271,10 @@ class BOWTopicModelSemiSupervised(Model):
         batch_size = input_tokens.size(0)
         stopless_bow = torch.zeros(batch_size, self.vocab.get_vocab_size("stopless")).float()
         for row, example in enumerate(input_tokens):
+            if id[row] in self._id_to_bow:
+                stopless_bow[row] = self._id_to_bow[id[row]].clone()
+                continue
+
             word_counts = Counter()
             words = [self.vocab.get_token_from_index(index.item(), 'stopless') for index in example]
             word_counts.update(words)
@@ -275,6 +285,8 @@ class BOWTopicModelSemiSupervised(Model):
                 # Increment the count at the word's stopless index for the current row.
                 stopless_word_index = self.vocab.get_token_index(word, "stopless")
                 stopless_bow[row][stopless_word_index] = word_counts[word]
+
+            self._id_to_bow[row] = stopless_bow[row].clone()
 
         return stopless_bow
 

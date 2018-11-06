@@ -2,8 +2,8 @@
     "dataset_reader": {
       "type": "processed_document_reader"
     },
-    "train_data_path": "/data/dangt7/IMDB/train_20k_labelled.filtered.jsonl",
-    "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",
+    "train_data_path": "data/semi_supervised/train_20k_labelled.filtered.jsonl",
+    "validation_data_path": "data/semi_supervised/valid.filtered.jsonl",
     "vocabulary": {
         "max_vocab_size": {
             "stopless": 2000,
@@ -12,7 +12,7 @@
     },
     "model": {
       "type": "BOWTopicModelSemiSupervised",
-      "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
+      "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
       "update_bg": false,
       "vae": {
         "apply_batchnorm": {
@@ -23,7 +23,8 @@
           "input_dim": 2004,
           "num_layers": 1,
           "hidden_dims": [300],
-          "activations": ["softplus"]
+          "activations": ["softplus"],
+          "dropout": 0.4
         },
         "decoder": {
           "input_dim": 10,
@@ -35,20 +36,23 @@
           "input_dim": 300,
           "num_layers": 1,
           "hidden_dims": [10],
-          "activations": ["linear"]
+          "activations": ["linear"],
+          "dropout": 0.4
         },
         "log_variance_projection": {
           "input_dim": 300,
           "num_layers": 1,
           "hidden_dims": [10],
-          "activations": ["linear"]
+          "activations": ["linear"],
+          "dropout": 0.4
         }
       },
       "classification_layer": {
         "input_dim": 2002,
-        "num_layers": 2,
-        "hidden_dims": [1000, 2],
-        "activations": ["relu", "relu"]
+        "num_layers": 1,
+        "hidden_dims": [2],
+        "activations": ["linear"],
+        "dropout": 0.4
       }
     },
     "iterator": {
@@ -57,10 +61,10 @@
     },
     "trainer": {
       "num_epochs": 200,
-      "cuda_device": 0,
+      "cuda_device": -1,
       "optimizer": {
         "type": "adam",
-        "lr": 0.0001
+        "lr": 0.002
       }
     }
   }
