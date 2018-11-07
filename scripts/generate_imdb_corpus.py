@@ -6,6 +6,7 @@ import sys
 
 from tqdm import tqdm
 
+example_id = 0
 
 def main():
     """
@@ -26,7 +27,7 @@ def main():
         test/
             pos/
             neg/
-    
+
     Each line will be an example of the form:
     {
       "id": The unique ID given to each review,
@@ -136,23 +137,26 @@ def directory_to_jsons(data_dir):
     :param data_dir: The directory containing the data instances.
     :param save_path: The path in which to save the jsonl.
     """
+    global example_id
 
     jsons = []
     for path in tqdm(os.listdir(data_dir)):
         full_path = os.path.join(data_dir, path)
 
         # File names are expected to be XXXX_XX.txt
-        [example_id, example_sentiment] = path.split('.')[0].split('_')
+        [_, example_sentiment] = path.split('.')[0].split('_')
 
         # Write the example on it's own line.
         with open(full_path, 'r') as file:
             example_text = file.read()
             example = {
-                "id": int(example_id),
+                "id": example_id,
                 "sentiment": int(example_sentiment),
                 "text": example_text
             }
             jsons.append(example)
+
+        example_id += 1
 
     return jsons
 

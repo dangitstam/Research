@@ -142,7 +142,7 @@ class DocumentReader(DatasetReader):
                 exampled_labelled = 1 if example['sentiment'] else 0
                 example_id = example['id']
                 example_instance = {
-                    'id': LabelField(example_id, skip_indexing=True),
+                    'ids': LabelField(example_id, skip_indexing=True),
                     'input_tokens': TextField(example_text_tokenized, self._token_indexers),
                     'filtered_tokens': TextField(example_filtered_text_tokenized, self._stopless_token_indexers),
                     'sentiment': LabelField(example_sentiment, skip_indexing=True),
