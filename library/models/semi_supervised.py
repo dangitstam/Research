@@ -53,6 +53,7 @@ class BOWTopicModelSemiSupervised(Model):
                  classification_layer: FeedForward,
                  background_data_path: str = None,
                  update_bg: bool = True,
+                 num_labelled_instances: int = 20000,
                  alpha: float = 0.1,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
@@ -70,6 +71,7 @@ class BOWTopicModelSemiSupervised(Model):
         self.vae = vae
         self.classification_layer = classification_layer
         self.num_classes = classification_layer.get_output_dim()
+        self.num_labelled_instances = num_labelled_instances
         self.alpha = alpha
 
         self.z_dropout = torch.nn.Dropout(p=0.2)
@@ -137,14 +139,10 @@ class BOWTopicModelSemiSupervised(Model):
         labelled_loss = -torch.sum(L)
 
         # Note that in evaluation, there is no unlabelled data.
-        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
+        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0])).to(device=sentiment.device)
         self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
 
-        # Classification loss is significantly smaller than the elbo objective; scale it so that
-        # enough gradient flows through for learning.
-        equalizer = ((labelled_loss + unlabelled_loss) / classification_loss).item()
-
-        J_alpha = (labelled_loss + unlabelled_loss) + (self.alpha * equalizer) * classification_loss  # pylint: disable=C0103
+        J_alpha = (labelled_loss + unlabelled_loss) + (self.alpha * self.num_labelled_instances) * classification_loss  # pylint: disable=C0103
 
         output_dict['loss'] = J_alpha
 
