@@ -269,8 +269,8 @@ class BOWTopicModelSemiSupervised(Model):
         batch_size = input_tokens.size(0)
         stopless_bow = torch.zeros(batch_size, self.vocab.get_vocab_size("stopless")).float()
         for row, example in enumerate(input_tokens):
-            if id[row] in self._id_to_bow:
-                stopless_bow[row] = self._id_to_bow[id[row]].clone()
+            if id[row].item() in self._id_to_bow:
+                stopless_bow[row] = self._id_to_bow[id[row].item()].clone()
                 continue
 
             word_counts = Counter()
@@ -284,7 +284,7 @@ class BOWTopicModelSemiSupervised(Model):
                 stopless_word_index = self.vocab.get_token_index(word, "stopless")
                 stopless_bow[row][stopless_word_index] = word_counts[word]
 
-            self._id_to_bow[row] = stopless_bow[row].clone()
+            self._id_to_bow[id[row].item()] = stopless_bow[row].clone()
 
         return stopless_bow
 
