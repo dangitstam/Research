@@ -32,26 +32,29 @@ def log_standard_categorical(logits: torch.Tensor):
     return cross_entropy
 
 
-def sort_unsupervised_instances(ids: torch.Tensor,
-                                input_tokens: torch.LongTensor,
-                                filtered_tokens: torch.Tensor,
-                                sentiment: torch.LongTensor,
-                                labelled: torch.LongTensor):
-    """Given a batch of examples, separate them into labelled and unlablled instances."""
+def separate_labelled_and_unlabeled_instances(ids: torch.Tensor,
+                                              input_tokens: torch.LongTensor,
+                                              filtered_tokens: torch.Tensor,
+                                              sentiment: torch.LongTensor,
+                                              labelled: torch.LongTensor):
+    """
+    Given a batch of examples, separate them into labelled and unlablled instances.
+    """
+    output_dict = {}
 
     # Labelled is zero everywhere an example is unlabelled and 1 otherwise.
     labelled_indices = (labelled != 0).nonzero().squeeze()
-    labelled_tokens = input_tokens[labelled_indices]
-    labelled_filtered_tokens = filtered_tokens[labelled_indices]
-    labelled_sentiment = sentiment[labelled_indices]
-    labelled_ids = ids[labelled_indices]
+    output_dict["labelled_tokens"] = input_tokens[labelled_indices]
+    output_dict["labelled_filtered_tokens"] = filtered_tokens[labelled_indices]
+    output_dict["labelled_sentiment"] = sentiment[labelled_indices]
+    output_dict["labelled_ids"] = ids[labelled_indices]
 
     unlabelled_indices = (labelled == 0).nonzero().squeeze()
-    unlabelled_tokens = input_tokens[unlabelled_indices]
-    unlabelled_filtered_tokens = filtered_tokens[unlabelled_indices]
-    unlabelled_ids = ids[unlabelled_indices]
+    output_dict["unlabelled_tokens"] = input_tokens[unlabelled_indices]
+    output_dict["unlabelled_filtered_tokens"] = filtered_tokens[unlabelled_indices]
+    output_dict["unlabelled_ids"] = ids[unlabelled_indices]
 
-    return (labelled_ids, labelled_tokens, labelled_filtered_tokens, labelled_sentiment), (unlabelled_ids, unlabelled_tokens, unlabelled_filtered_tokens)
+    return output_dict
 
 def compute_bow_vector(vocab: Vocabulary,
                        input_tokens: Dict[str, torch.LongTensor]) -> Dict[str, torch.Tensor]:

@@ -4,21 +4,20 @@ from typing import Dict, Optional
 
 from tabulate import tabulate
 import torch
+from torch.nn.functional import log_softmax
+
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
-from allennlp.models.archival import load_archive
+
 from allennlp.models.model import Model
-from allennlp.modules import FeedForward, Seq2VecEncoder, TextFieldEmbedder
-from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
+from allennlp.modules import FeedForward
+from allennlp.nn import InitializerApplicator, RegularizerApplicator
 from allennlp.training.metrics import Average, CategoricalAccuracy
 from overrides import overrides
-from torch.nn.functional import log_softmax
-from torch.nn.modules.linear import Linear
 
 from library.models.vae import VAE
 
-from .util import (compute_bow_vector, log_standard_categorical,
-                   sort_unsupervised_instances)
+from .util import log_standard_categorical, separate_labelled_and_unlabeled_instances
 
 # TODO: A seq2vec addition will require a separate dataset reader.
 # Construct a new dataset that contains sentiment / full text / filtered text.
@@ -128,27 +127,31 @@ class BOWTopicModelSemiSupervised(Model):
 
         output_dict = {}
 
-        (labelled_ids, _, labelled_filtered_tokens, labelled_sentiment), (unlabelled_ids, _, unlabelled_filtered_tokens) = \
-            sort_unsupervised_instances(ids, input_tokens['tokens'], filtered_tokens['tokens'], sentiment, labelled)
+        # Sort instances into labelled and unlabelled portions.
+        instances = separate_labelled_and_unlabeled_instances(ids, input_tokens['tokens'],
+                                                              filtered_tokens['tokens'], sentiment, labelled)
 
-        L, classification_loss = self.ELBO(labelled_ids, labelled_filtered_tokens, labelled_sentiment)  # pylint: disable=C0103
-        U = self.U(unlabelled_ids, unlabelled_filtered_tokens)   # pylint: disable=C0103
+        # Compute supervised and unsupervised objective.
+        L, classification_loss = self.ELBO(instances["labelled_ids"],  # pylint: disable=C0103
+                                           instances["labelled_filtered_tokens"],
+                                           instances["labelled_sentiment"])
+        U = self.U(instances["unlabelled_ids"], instances["unlabelled_filtered_tokens"])   # pylint: disable=C0103
 
-        # Joint supervised and unsupervised learning. 
-        # classification_loss' is already cross entropy loss so there's no need to negate it.
         labelled_loss = -torch.sum(L)
-
-        # Note that in evaluation, there is no unlabelled data.
+        # When evaluating, there is no unlabelled data.
         unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
         self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
 
-        J_alpha = (labelled_loss + unlabelled_loss) + (self.alpha * self.num_labelled_instances) * classification_loss  # pylint: disable=C0103
+        # Joint supervised and unsupervised learning.
+        scaled_classification_loss = (self.alpha * self.num_labelled_instances) * classification_loss
+        J_alpha = (labelled_loss + unlabelled_loss) + scaled_classification_loss  # pylint: disable=C0103
 
         output_dict['loss'] = J_alpha
 
         # While training, it's helpful to see how the topics are changing.
         if self.training and self.step == 100:
-            print(tabulate(self.extract_topics(), headers=["Topic #", "Words"]))
+            print(tabulate(self.extract_topics(self.beta), headers=["Topic #", "Words"]))
+            print(tabulate(self.extract_topics(self.covariates), headers=["Covariate #", "Words"]))
             self.step = 0
         else:
             if self.training:
@@ -257,7 +260,9 @@ class BOWTopicModelSemiSupervised(Model):
 
         return L_weighted + H
 
-    def _compute_stopless_bow(self, ids: torch.Tensor, input_tokens: Dict[str, torch.Tensor]):
+    def _compute_stopless_bow(self,
+                              ids: torch.Tensor,
+                              input_tokens: Dict[str, torch.Tensor]):
         """
         Return a vector representation of words in the stopless dimension.
 
@@ -289,13 +294,18 @@ class BOWTopicModelSemiSupervised(Model):
         return stopless_bow
 
     def _compute_background_log_frequency(self, precomputed_word_counts: str):
-        """ Load in the word counts from the JSON file and compute the
-            background log term frequency w.r.t this vocabulary. """
+        """
+        Load in the word counts from the JSON file and compute the
+        background log term frequency w.r.t this vocabulary.
+
+        :param precomputed_word_counts: ``str``
+            The path to the JSON object containing word to frequency mappings.
+        """
         precomputed_word_counts = json.load(open(precomputed_word_counts, "r"))
         log_term_frequency = torch.FloatTensor(self.vocab.get_vocab_size('stopless'))
         for i in range(self.vocab.get_vocab_size('stopless')):
             token = self.vocab.get_token_from_index(i, 'stopless')
-            if token == DEFAULT_OOV_TOKEN or token == DEFAULT_PADDING_TOKEN:
+            if token in (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN):
                 log_term_frequency[i] = 1e-12
             elif token in precomputed_word_counts:
                 log_term_frequency[i] = precomputed_word_counts[token]
@@ -308,13 +318,17 @@ class BOWTopicModelSemiSupervised(Model):
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         return {metric_name: float(metric.get_metric(reset)) for metric_name, metric in self.metrics.items()}
 
-    def extract_topics(self, k=20):
+    def extract_topics(self, weights: torch.Tensor, k: int = 20):
         """
-        Given the learned (topic, vocabulary size) beta, print the
-        top k words from each topic.
+        Given the learned (K, vocabulary size) weights, print the
+        top k words from each row as a topic.
+
+        :param k: ``int``
+            The number of words per topic to display.
         """
 
-        words = list(range(self.beta.size(1)))
+        print()  # Start on a new line for readibility.
+        words = list(range(weights.size(1)))
         words = [self.vocab.get_token_from_index(i, "stopless") for i in words]
 
         topics = []
@@ -326,7 +340,7 @@ class BOWTopicModelSemiSupervised(Model):
         background = [x[0] for x in sorted_by_strength][:k]
         topics.append(('bg', background))
 
-        for i, topic in enumerate(self.beta):
+        for i, topic in enumerate(weights):
             word_strengths = list(zip(words, topic.tolist()))
             sorted_by_strength = sorted(word_strengths,
                                         key=lambda x: x[1],
