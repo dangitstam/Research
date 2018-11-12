@@ -14,7 +14,8 @@ class VAE(Model):
                  mu_projection: FeedForward,
                  log_variance_projection: FeedForward,
                  decoder: FeedForward,
-                 apply_batchnorm: Dict[str, bool] = None):
+                 apply_batchnorm: Dict[str, bool] = None,
+                 z_dropout: float = 0.2):
         super(VAE, self).__init__(vocab)
         assert mu_projection.get_output_dim() == log_variance_projection.get_output_dim() and \
                mu_projection.get_output_dim() == log_variance_projection.get_output_dim(), \
@@ -32,9 +33,12 @@ class VAE(Model):
         self.mu_projection = mu_projection
         self.log_variance_projection = log_variance_projection
         self.decoder = decoder
-        self.dropout = torch.nn.Dropout(0.2)
 
-        self.batchnorm = torch.nn.BatchNorm1d(mu_projection.get_output_dim(), eps=0.001, momentum=0.001, affine=True)
+        # Since z is a matrix multiply, there's no pre-built dropout ready for it.
+        self.z_dropout = torch.nn.Dropout(z_dropout)
+
+        self.batchnorm = torch.nn.BatchNorm1d(mu_projection.get_output_dim(),
+                                              eps=0.001, momentum=0.001, affine=True)
         self.batchnorm.weight.data.copy_(torch.from_numpy(np.ones(mu_projection.get_output_dim())))
         self.batchnorm.weight.requires_grad = False
 
@@ -50,8 +54,7 @@ class VAE(Model):
         """
 
         initial_latent_projection = self.encoder(input_vector)
-        initial_latent_projection_do = self.dropout(initial_latent_projection)
-        mu = self.mu_projection(initial_latent_projection_do)  # pylint: disable=C0103
+        mu = self.mu_projection(initial_latent_projection)  # pylint: disable=C0103
 
         if self.apply_batchnorm['mu']:
             mu = self.batchnorm(mu) # pylint: disable=C0103
@@ -70,6 +73,6 @@ class VAE(Model):
         if self.training:
             z = mu + sigma * epsilon # pylint: disable=C0103
         else:
-            z = mu
+            z = mu  # pylint: disable=C0103
 
-        return z, mu, sigma
+        return self.z_dropout(z), mu, sigma
