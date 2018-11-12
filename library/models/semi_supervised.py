@@ -19,8 +19,7 @@ from library.models.vae import VAE
 
 from .util import log_standard_categorical, separate_labelled_and_unlabeled_instances
 
-# TODO: A seq2vec addition will require a separate dataset reader.
-# Construct a new dataset that contains sentiment / full text / filtered text.
+# TODO: Abstract out the classifier, allowing it to take both the unfiltered or filtered words.
 
 @Model.register("BOWTopicModelSemiSupervised")
 class BOWTopicModelSemiSupervised(Model):

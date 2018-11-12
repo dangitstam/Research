@@ -3,12 +3,13 @@ from collections import Counter
 from typing import Callable, Dict, Optional, Tuple, Union
 
 import torch
+from torch.nn.utils.rnn import (PackedSequence, pack_padded_sequence,
+                                pad_packed_sequence)
+
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
 from allennlp.nn.util import (get_lengths_from_binary_sequence_mask,
                               sort_batch_by_length)
-from torch.nn.utils.rnn import (PackedSequence, pack_padded_sequence,
-                                pad_packed_sequence)
 
 RnnState = Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]  # pylint: disable=invalid-name
 RnnStateStorage = Tuple[torch.Tensor, ...]  # pylint: disable=invalid-name
@@ -151,7 +152,6 @@ def sort_and_run_forward(module: Callable[[PackedSequence, Optional[RnnState]],
     # calling self._module, then fill with zeros.
 
     # First count how many sequences are empty.
-    batch_size = mask.size(0)
     num_valid = torch.sum(mask[:, 0]).int().item()
 
     sequence_lengths = get_lengths_from_binary_sequence_mask(mask)
