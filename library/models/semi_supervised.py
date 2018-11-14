@@ -6,6 +6,7 @@ from tabulate import tabulate
 import torch
 from torch.nn.functional import log_softmax
 
+from allennlp.nn.util import get_text_field_mask
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
 
@@ -212,8 +213,9 @@ class BOWTopicModelSemiSupervised(Model):
             encoded_input = self.encoder(embedded_tokens)
             labelled_logits = self.classification_layer(encoded_input)
         else:
-            embedded_tokens = self.filtered_embedder({"full": instances['tokens']})
-            encoded_input = self.encoder(embedded_tokens)
+            token_mask = get_text_field_mask({"full": instances['tokens']})
+            embedded_tokens = self.input_embedder({"full": instances['tokens']})
+            encoded_input = self.encoder(embedded_tokens, token_mask)
             labelled_logits = self.classification_layer(encoded_input)
 
         return labelled_logits, encoded_input

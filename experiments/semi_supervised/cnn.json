@@ -15,10 +15,12 @@
       "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
       "alpha": 100,
       "update_bg": false,
+      "use_filtered_tokens": false,
       "input_embedder": {
         "full": {
           "type": "embedding",
           "embedding_dim": 300,
+          "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt",
           "trainable": true,
           "vocab_namespace": "full"
         }
@@ -33,8 +35,10 @@
           }
       },
       "encoder": {
-        "type": "boe",
-        "embedding_dim": 300
+        "type": "cnn",
+        "num_filters": 5,
+        "embedding_dim": 300,
+        "output_dim": 300
       },
       "vae": {
         "apply_batchnorm": {

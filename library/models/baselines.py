@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 from typing import Dict, Optional
 
@@ -11,12 +12,16 @@ from allennlp.modules import FeedForward, Seq2VecEncoder, TextFieldEmbedder
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
 from allennlp.training.metrics import Average, CategoricalAccuracy
 from overrides import overrides
+from tabulate import tabulate
 from torch.distributions.multivariate_normal import MultivariateNormal
+from torch.nn.functional import log_softmax
 from torch.nn.modules.linear import Linear
 
 from library.dataset_readers.util import STOP_WORDS
+from library.models.vae import VAE
 
-from .util import compute_stopless_bow_vector
+from .util import (compute_stopless_bow_vector, log_standard_categorical,
+                   separate_labelled_and_unlabelled_instances)
 
 
 @Model.register("seq2vec_classifier")
