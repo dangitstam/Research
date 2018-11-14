@@ -1,0 +1,55 @@
+{
+  "dataset_reader": {
+    "type": "document_reader"
+  },
+  "train_data_path": "data/train_20k_labelled.filtered.jsonl",
+  "validation_data_path": "data/valid.filtered.jsonl",
+  "vocabulary": {
+    "directory_path": "vocabulary"
+  },
+  "model": {
+    "type": "BOWTopicModel",
+    "vae": {
+      "apply_batchnorm": {
+          "mu": false,
+          "sigma": false
+      },
+      "encoder": {
+        "input_dim": 9527,
+        "num_layers": 1,
+        "hidden_dims": [10],
+        "activations": ["tanh"]
+      },
+      "decoder": {
+        "input_dim": 10,
+        "num_layers": 1,
+        "hidden_dims": [9527],
+        "activations": ["tanh"]
+      },
+      "mu_projection": {
+        "input_dim": 10,
+        "num_layers": 1,
+        "hidden_dims": [10],
+        "activations": ["tanh"]
+      },
+      "log_variance_projection": {
+        "input_dim": 10,
+        "num_layers": 1,
+        "hidden_dims": [10],
+        "activations": ["tanh"]
+      }
+    }
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 100
+  },
+  "trainer": {
+    "num_epochs": 10,
+    "cuda_device": -1,
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.001
+    }
+  }
+}

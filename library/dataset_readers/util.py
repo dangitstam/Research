@@ -12,10 +12,10 @@ def normalize_raw_text(text):
     """
     re1 = re.compile(r'  +')
     text = text.replace('#39;', "'").replace('amp;', '&').replace('#146;', "'").replace(
-           'nbsp;', ' ').replace('#36;', '$').replace('\\n', "\n").replace('quot;', "'").replace(
-           '<br />', "\n").replace('\\"', '"').replace('<unk>','u_n').replace(' @.@ ','.').replace(
-           ' @-@ ','-').replace('\\', ' \\ ')
-    return re1.sub(' ', html.unescape(text))
+        'nbsp;', ' ').replace('#36;', '$').replace('\\n', "\n").replace('quot;', "'").replace(
+            '<br />', "\n").replace('\\"', '"').replace('<unk>', 'u_n').replace(' @.@ ','.').replace(
+                ' @-@ ', '-').replace('\\', ' \\ ')
+    return re1.sub(' ', html.unescape(text)).lower()
 
 
 """ Stop words in alphabetical order (adapted from MALLET's en.txt)

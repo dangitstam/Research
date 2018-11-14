@@ -1,0 +1,47 @@
+{
+  "dataset_reader": {
+    "type": "document_reader",
+    "use_stopless_tokens": true
+  },
+  "train_data_path": "data/train_labelled.filtered.jsonl",
+  "validation_data_path": "data/valid.filtered.jsonl",
+  "vocabulary": {
+    "max_vocab_size": 2000
+  },
+  "model": {
+    "type": "seq2vec_classifier",
+    "text_field_embedder": {
+      "tokens": {
+        "type": "embedding",
+        "embedding_dim": 300,
+        "trainable": true,
+        "vocab_namespace": "tokens",
+        "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt"
+      }
+    },
+    "encoder": {
+      "type": "boe",
+      "embedding_dim": 300
+    },
+    "classification_layer": {
+        "input_dim": 300,
+        "num_layers": 1,
+        "hidden_dims": [2],
+        "activations": ["linear"]
+      }
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 32
+  },
+  "trainer": {
+    "num_epochs": 10,
+    "cuda_device": -1,
+    "grad_clipping": 0.5,
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.0001,
+      "weight_decay": 0.00001
+    }
+  }
+}
