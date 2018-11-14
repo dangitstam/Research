@@ -1,6 +1,6 @@
 # Exploration in Utilizing In-Domain, Unlabelled Data in Text Classification
 
-## Getting Starting
+## Getting Started
 
 ### Requirements
 
