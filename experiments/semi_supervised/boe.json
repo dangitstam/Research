@@ -11,10 +11,31 @@
         }
     },
     "model": {
-      "type": "BOWTopicModelSemiSupervised",
+      "type": "BOWTopicModelSemiSupervised2",
       "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
-      "alpha": 0.9,
+      "alpha": 100,
       "update_bg": false,
+      "input_embedder": {
+        "full": {
+          "type": "embedding",
+          "embedding_dim": 300,
+          "trainable": true,
+          "vocab_namespace": "full"
+        }
+      },
+      "filtered_embedder": {
+        "filtered": {
+            "type": "embedding",
+            "embedding_dim": 300,
+            "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt",
+            "trainable": true,
+            "vocab_namespace": "stopless"
+          }
+      },
+      "encoder": {
+        "type": "boe",
+        "embedding_dim": 300
+      },
       "vae": {
         "apply_batchnorm": {
             "mu": false,
@@ -23,9 +44,9 @@
         "encoder": {
           "input_dim": 2004,
           "num_layers": 1,
-          "hidden_dims": [300],
-          "activations": ["softplus"],
-          "dropout": 0.4
+          "hidden_dims": [500],
+          "activations": ["linear"],
+          "dropout": 0.3
         },
         "decoder": {
           "input_dim": 10,
@@ -34,18 +55,18 @@
           "activations": ["tanh"]
         },
         "mu_projection": {
-          "input_dim": 300,
+          "input_dim": 500,
           "num_layers": 1,
           "hidden_dims": [10],
           "activations": ["linear"],
-          "dropout": 0.4
+          "dropout": 0.3
         },
         "log_variance_projection": {
-          "input_dim": 300,
+          "input_dim": 500,
           "num_layers": 1,
           "hidden_dims": [10],
           "activations": ["linear"],
-          "dropout": 0.4
+          "dropout": 0.3
         }
       },
       "classification_layer": {
@@ -53,7 +74,7 @@
         "num_layers": 1,
         "hidden_dims": [2],
         "activations": ["linear"],
-        "dropout": 0.4
+        "dropout": 0.3
       }
     },
     "iterator": {
@@ -65,7 +86,8 @@
       "cuda_device": -1,
       "optimizer": {
         "type": "adam",
-        "lr": 0.002
+        "lr": 0.001,
+        "weight_decay": 0.0001
       }
     }
   }

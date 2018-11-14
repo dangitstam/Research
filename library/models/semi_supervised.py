@@ -10,7 +10,7 @@ from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
 
 from allennlp.models.model import Model
-from allennlp.modules import FeedForward
+from allennlp.modules import FeedForward, Seq2VecEncoder, TextFieldEmbedder
 from allennlp.nn import InitializerApplicator, RegularizerApplicator
 from allennlp.training.metrics import Average, CategoricalAccuracy
 from overrides import overrides
@@ -19,7 +19,6 @@ from library.models.vae import VAE
 
 from .util import log_standard_categorical, separate_labelled_and_unlabelled_instances
 
-# TODO: Abstract out the classifier, allowing it to take both the unfiltered or filtered words.
 
 @Model.register("BOWTopicModelSemiSupervised")
 class BOWTopicModelSemiSupervised(Model):
@@ -47,12 +46,16 @@ class BOWTopicModelSemiSupervised(Model):
         If provided, will be used to calculate the regularization penalty during training.
     """
     def __init__(self, vocab: Vocabulary,
+                 encoder: Seq2VecEncoder,
                  classification_layer: FeedForward,
                  vae: VAE,
+                 input_embedder: TextFieldEmbedder,
+                 filtered_embedder: TextFieldEmbedder,
                  alpha: float = 0.1,
                  background_data_path: str = None,
                  update_bg: bool = True,
-                 shared_representation: bool = False,
+                 use_filtered_tokens: bool = True,
+                 use_shared_representation: bool = False,
                  initializer: InitializerApplicator = InitializerApplicator(),
                  regularizer: Optional[RegularizerApplicator] = None) -> None:
         super(BOWTopicModelSemiSupervised, self).__init__(vocab, regularizer)
@@ -65,12 +68,18 @@ class BOWTopicModelSemiSupervised(Model):
             'ELBO': Average()
         }
 
+        self.input_embedder = input_embedder
+        self.filtered_embedder = filtered_embedder
+        self.encoder = encoder
         self.vocab = vocab
         self.classification_layer = classification_layer
         self.vae = vae
         self.alpha = alpha
         self.num_classes = classification_layer.get_output_dim()
-        self.shared_representation = shared_representation
+
+        # Hyperparameter flags.
+        self._use_shared_representation = use_shared_representation
+        self._use_filtered_tokens = use_filtered_tokens
 
         # Loss functions.
         self.classification_criterion = torch.nn.CrossEntropyLoss(reduction='sum')
@@ -83,6 +92,11 @@ class BOWTopicModelSemiSupervised(Model):
         self.batchnorm = torch.nn.BatchNorm1d(stopless_vocab_size, eps=0.001, momentum=0.001, affine=True)
         self.batchnorm.weight.data.copy_(torch.ones(stopless_vocab_size, dtype=torch.float64))
         self.batchnorm.weight.requires_grad = False
+
+        # Input batchnorm when the representation is shared.
+        self.input_batchnorm = torch.nn.BatchNorm1d(self.encoder.get_output_dim(), eps=0.001, momentum=0.001, affine=True)
+        self.input_batchnorm.weight.data.copy_(torch.ones(self.encoder.get_output_dim(), dtype=torch.float64))
+        self.input_batchnorm.weight.requires_grad = False
 
         # Learnable bias.
         if background_data_path is not None:
@@ -131,12 +145,44 @@ class BOWTopicModelSemiSupervised(Model):
         labelled_instances, unlabelled_instances = separate_labelled_and_unlabelled_instances(
             ids, input_tokens['tokens'], filtered_tokens['tokens'], sentiment, labelled)
 
+        # Stopless Bag-of-Words to be reconstructed.
+        labelled_bow = self._compute_stopless_bow(labelled_instances['ids'],
+                                                  labelled_instances['stopless_tokens'])
+
+        # Logits for labelled data.
+        labelled_logits, labelled_encoded_input = self._classify(labelled_instances)
+        labelled_logits = self.classification_layer(labelled_encoded_input)
+
+        labelled_sentiment = labelled_instances['sentiment']
+
         # Compute supervised and unsupervised objective.
-        L, classification_loss = self.ELBO(labelled_instances)  # pylint: disable=C0103
-        U = self.U(unlabelled_instances)   # pylint: disable=C0103
+        L = self.ELBO(labelled_encoded_input, labelled_bow, labelled_sentiment)
+
+        # # When provided, use the unlabelled data.
+        if len(unlabelled_instances['ids']) > 0:
+            unlabelled_bow = self._compute_stopless_bow(unlabelled_instances['ids'],
+                                                        unlabelled_instances['stopless_tokens'])
+
+            # Logits for unlabelled data where the label is a latent variable.
+            unlabelled_logits, unlabelled_encoded_input = self._classify(unlabelled_instances)
+
+            # Logits need to be normalized for proper weighting.
+            unlabelled_logits = torch.softmax(unlabelled_logits, dim=-1)
+
+            U = self.U(unlabelled_encoded_input, unlabelled_bow, unlabelled_logits)
+        else:
+            U = None
+
+        if self.training:
+            assert U is not None, "Current batch does not contain unlabelled data."
+
+        # Classification loss and metrics.
+        classification_loss = self.classification_criterion(
+            labelled_logits, labelled_sentiment)
+        self.metrics['Accuracy'](labelled_logits, labelled_sentiment)
+        self.metrics['Cross_Entropy'](classification_loss)
 
         labelled_loss = -torch.sum(L)
-        # When evaluating, there is no unlabelled data.
         unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
         self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
 
@@ -157,7 +203,25 @@ class BOWTopicModelSemiSupervised(Model):
 
         return output_dict
 
-    def ELBO(self, instances: Dict, sentiment: Optional[torch.Tensor] = None):  # pylint: disable=C0103
+    def _classify(self, instances: Dict):
+        """
+        Produce logits here
+        """
+        if self._use_filtered_tokens:
+            embedded_tokens = self.filtered_embedder({"filtered": instances['stopless_tokens']})
+            encoded_input = self.encoder(embedded_tokens)
+            labelled_logits = self.classification_layer(encoded_input)
+        else:
+            embedded_tokens = self.filtered_embedder({"full": instances['tokens']})
+            encoded_input = self.encoder(embedded_tokens)
+            labelled_logits = self.classification_layer(encoded_input)
+
+        return labelled_logits, encoded_input
+
+    def ELBO(self,  # pylint: disable=C0103
+             input_representation: torch.Tensor,
+             bow: torch.Tensor,
+             sentiment: torch.Tensor):
         """
         Computes ELBO loss. For convenience, also returns classification loss
         given the label.
@@ -172,28 +236,19 @@ class BOWTopicModelSemiSupervised(Model):
             as a latent variable unlike the sentiment provided in labelled
             versions of `instances`.
         """
-
-        # Regardless of label, every instance has a full and filtered version.
-        ids = instances['ids']
-        input_tokens = instances['tokens']
-        filtered_tokens = instances['stopless_tokens']
-
-        # Labelled instances will already have sentiment.
-        if instances['labelled']:
-            sentiment = instances['sentiment']
-
-        batch_size = input_tokens.size(0)
-
-        # Bag-of-words representation.
-        bow = self._compute_stopless_bow(ids, filtered_tokens).to(device=self.device)
+        batch_size = input_representation.size(0)
 
         # One-hot the sentiment vector before concatenation.
         sentiment_one_hot = torch.FloatTensor(batch_size, self.num_classes).to(device=self.device)
         sentiment_one_hot.zero_()
         sentiment_one_hot = sentiment_one_hot.scatter_(1, sentiment.reshape(-1, 1), 1)
 
-        # Variational Inference, where Z ~ q(z | x, y)
-        z, mu, sigma = self.vae(torch.cat((bow, sentiment_one_hot), dim=-1))  # pylint: disable=C0103
+        # Variational Inference, where Z ~ q(z | x, y) OR Z ~ q(z | h(x), y)
+        if self._use_shared_representation:
+            input_representation = self.input_batchnorm(input_representation)
+            z, mu, sigma = self.vae(torch.cat((input_representation, sentiment_one_hot), dim=-1))  # pylint: disable=C0103
+        else:
+            z, mu, sigma = self.vae(torch.cat((bow, sentiment_one_hot), dim=-1))  # pylint: disable=C0103
 
         # For better interpretibility of topics.
         theta = torch.softmax(z, dim=-1)  # pylint: disable=C0103
@@ -219,21 +274,12 @@ class BOWTopicModelSemiSupervised(Model):
         self.metrics['KL-Divergence'](-torch.mean(negative_kl_divergence))
         self.metrics['Reconstruction'](-torch.mean(reconstruction_log_likelihood))
 
-        # For convenience: allows proper mapping from example to sentiment if
-        # classification loss is optionally returned here.
-        if instances['labelled']:
-            logits = self.classification_layer(bow)
-            classification_loss = self.classification_criterion(logits, sentiment)
-
-            # Update metrics.
-            self.metrics['Accuracy'](logits, sentiment)
-            self.metrics['Cross_Entropy'](classification_loss)
-
-            return elbo, classification_loss
-
         return elbo
 
-    def U(self, instances: Dict):  # pylint: disable=C0103
+    def U(self,  # pylint: disable=C0103
+          input_representation: torch.Tensor,
+          bow: torch.Tensor,
+          logits: torch.Tensor):
         """
         Computes loss for unlabelled data.
 
@@ -242,13 +288,7 @@ class BOWTopicModelSemiSupervised(Model):
 
         Returns the sum of ELBO and the entropy of the predicted classification logits.
         """
-
-        # Regardless of label, every instance has a full and filtered version.
-        ids = instances['ids']
-        input_tokens = instances['tokens']
-        filtered_tokens = instances['stopless_tokens']
-
-        batch_size = input_tokens.size(0)
+        batch_size = input_representation.size(0)
 
         # No work to be done on zero instances.
         if batch_size == 0:
@@ -259,14 +299,7 @@ class BOWTopicModelSemiSupervised(Model):
             # Instantiate an artifical labelling for each class.
             # Labels are treated as a latent variable that we marginalize over.
             sentiment = (torch.ones(batch_size).long() * i).to(device=self.device)
-            elbos[i] = self.ELBO(instances, sentiment=sentiment)
-
-        # Bag-of-words representation.
-        bow = self._compute_stopless_bow(ids, filtered_tokens).to(device=self.device)
-
-        # Compute q(y | x).
-        # Shape: (batch, num_classes)
-        logits = torch.softmax(self.classification_layer(bow), dim=-1)
+            elbos[i] = self.ELBO(input_representation, bow, sentiment)
 
         # Compute q(y | x)(-ELBO) and entropy H(q(y|x)), sum over all labels.
         # Reshape elbos to be (batch, num_classes) before the per-class weighting.
