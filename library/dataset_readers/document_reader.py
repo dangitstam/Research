@@ -11,15 +11,13 @@ from allennlp.data.tokenizers import Tokenizer, WordTokenizer
 from allennlp.data.tokenizers.word_splitter import JustSpacesWordSplitter
 from overrides import overrides
 
-from .util import normalize_raw_text, STOP_WORDS
-
 import ujson
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-@DatasetReader.register("imdb_review_reader")
-class IMDBReviewReader(DatasetReader):
+@DatasetReader.register("document_reader")
+class DocumentReader(DatasetReader):
     """
     Reads the 100K IMDB dataset in format that it appears in
     http://ai.stanford.edu/~amaas/data/sentiment/
@@ -46,14 +44,16 @@ class IMDBReviewReader(DatasetReader):
                  lazy: bool = False,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
+                 use_stopless_tokens: bool = True,
                 ) -> None:
         super().__init__(lazy)
         self._tokenizer = tokenizer or WordTokenizer()
         self._token_indexers = token_indexers or {
             "tokens": SingleIdTokenIndexer(namespace="tokens", lowercase_tokens=True),
-            "stopless_tokens": SingleIdTokenIndexer(namespace="stopless_tokens", lowercase_tokens=True)
         }
 
+        # Flag for whether to use the full text or the stopless text.
+        self._use_stopless_tokens = use_stopless_tokens
 
     @overrides
     def _read(self, file_path):
@@ -67,21 +67,22 @@ class IMDBReviewReader(DatasetReader):
                 if not line:
                     continue
                 example = ujson.loads(line)
-                example_text = normalize_raw_text(example['text'])
+                if self._use_stopless_tokens:
+                    example_text = example['stopless']
+                else:
+                    example_text = example['text']
                 example_text_tokenized = self._tokenizer.tokenize(example_text)
                 example_sentiment = 1 if example['sentiment'] >= 5 else 0
-                exampled_labelled = 1 if example['sentiment'] else 0
                 example_instance = {
                     'input_tokens': TextField(example_text_tokenized, self._token_indexers),
-                    'sentiment': LabelField(example_sentiment, skip_indexing=True),
-                    'labelled': LabelField(exampled_labelled, skip_indexing=True)
+                    'sentiment': LabelField(example_sentiment, skip_indexing=True)
                 }
 
                 yield Instance(example_instance)
 
 
-@DatasetReader.register("processed_document_reader")
-class DocumentReader(DatasetReader):
+@DatasetReader.register("document_reader_semi_supervised")
+class DocumentReaderSemiSupervised(DatasetReader):
     """
     Assumes that documents have been preprocessed into a .jsonl such that each
     object contains the full text, the filtered text, and class label.
@@ -109,8 +110,7 @@ class DocumentReader(DatasetReader):
     """
     def __init__(self,
                  lazy: bool = False,
-                 tokenizer: Tokenizer = None,
-                 token_indexers: Dict[str, TokenIndexer] = None,
+                 tokenizer: Tokenizer = None
                 ) -> None:
         super().__init__(lazy)
         self._tokenizer = tokenizer or WordTokenizer(word_splitter=JustSpacesWordSplitter())
@@ -120,7 +120,6 @@ class DocumentReader(DatasetReader):
         self._token_indexers = {
             "tokens": SingleIdTokenIndexer(namespace="full", lowercase_tokens=True)
         }
-
 
     @overrides
     def _read(self, file_path):
