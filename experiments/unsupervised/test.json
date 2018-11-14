@@ -2,14 +2,14 @@
   "dataset_reader": {
     "type": "imdb_review_reader"
   },
-  "train_data_path": "data/test/train.filtered.jsonlist",
+  "train_data_path": "data/test/train_20k_labelled.filtered.jsonlist",
   "validation_data_path": "data/test/test.filtered.jsonlist",
   "vocabulary": {
     "directory_path": "vocabulary_test"
   },
   "model": {
     "type": "BOWTopicModel",
-    "background_data_path": "data/test/bgfreq.json",
+    "background_data_path": "data/train_labelled.bgfreq.json",
     "update_bg": false,
     "vae": {
       "apply_batchnorm": {

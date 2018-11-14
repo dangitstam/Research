@@ -1,72 +1,72 @@
 {
-    "dataset_reader": {
-      "type": "document_reader_semi_supervised"
+  "dataset_reader": {
+    "type": "document_reader_semi_supervised"
+  },
+  "train_data_path": "data/semi_supervised/train_20k_labelled.filtered.jsonl",
+  "validation_data_path": "data/semi_supervised/valid.filtered.jsonl",
+  "vocabulary": {
+    "max_vocab_size": {
+      "stopless": 2000,
+      "full": 10000
+    }
+  },
+  "model": {
+    "type": "BOWTopicModelSemiSupervisedBaseline",
+    "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
+    "alpha": 0.9,
+    "update_bg": false,
+    "vae": {
+    "apply_batchnorm": {
+      "mu": false,
+      "sigma": false
     },
-    "train_data_path": "data/semi_supervised/train_20k_labelled.filtered.jsonl",
-    "validation_data_path": "data/semi_supervised/valid.filtered.jsonl",
-    "vocabulary": {
-        "max_vocab_size": {
-            "stopless": 2000,
-            "full": 10000
-        }
+    "encoder": {
+      "input_dim": 2004,
+      "num_layers": 1,
+      "hidden_dims": [300],
+      "activations": ["softplus"],
+      "dropout": 0.4
     },
-    "model": {
-      "type": "BOWTopicModelSemiSupervisedBaseline",
-      "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
-      "alpha": 0.9,
-      "update_bg": false,
-      "vae": {
-        "apply_batchnorm": {
-            "mu": false,
-            "sigma": false
-        },
-        "encoder": {
-          "input_dim": 2004,
-          "num_layers": 1,
-          "hidden_dims": [300],
-          "activations": ["softplus"],
-          "dropout": 0.4
-        },
-        "decoder": {
-          "input_dim": 10,
-          "num_layers": 1,
-          "hidden_dims": [2004],
-          "activations": ["tanh"]
-        },
-        "mu_projection": {
-          "input_dim": 300,
-          "num_layers": 1,
-          "hidden_dims": [10],
-          "activations": ["linear"],
-          "dropout": 0.4
-        },
-        "log_variance_projection": {
-          "input_dim": 300,
-          "num_layers": 1,
-          "hidden_dims": [10],
-          "activations": ["linear"],
-          "dropout": 0.4
-        }
-      },
-      "classification_layer": {
-        "input_dim": 300,
-        "num_layers": 1,
-        "hidden_dims": [2],
-        "activations": ["linear"],
-        "dropout": 0.4
-      }
+    "decoder": {
+      "input_dim": 10,
+      "num_layers": 1,
+      "hidden_dims": [2004],
+      "activations": ["tanh"]
     },
-    "iterator": {
-      "type": "basic",
-      "batch_size": 100
+    "mu_projection": {
+      "input_dim": 300,
+      "num_layers": 1,
+      "hidden_dims": [10],
+      "activations": ["linear"],
+      "dropout": 0.4
     },
-    "trainer": {
-      "num_epochs": 200,
-      "cuda_device": -1,
-      "optimizer": {
-        "type": "adam",
-        "lr": 0.002
-      }
+    "log_variance_projection": {
+      "input_dim": 300,
+      "num_layers": 1,
+      "hidden_dims": [10],
+      "activations": ["linear"],
+      "dropout": 0.4
+    }
+    },
+    "classification_layer": {
+    "input_dim": 300,
+    "num_layers": 1,
+    "hidden_dims": [2],
+    "activations": ["linear"],
+    "dropout": 0.4
+    }
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 100
+  },
+  "trainer": {
+    "num_epochs": 200,
+    "cuda_device": -1,
+    "optimizer": {
+    "type": "adam",
+    "lr": 0.002
     }
   }
+}
   
