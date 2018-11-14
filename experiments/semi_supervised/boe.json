@@ -2,8 +2,8 @@
   "dataset_reader": {
     "type": "document_reader_semi_supervised"
   },
-  "train_data_path": "data/semi_supervised/train_20k_labelled.filtered.jsonl",
-  "validation_data_path": "data/semi_supervised/valid.filtered.jsonl",
+  "train_data_path": "data/train_20k_labelled.filtered.jsonl",
+  "validation_data_path": "data/valid.filtered.jsonl",
   "vocabulary": {
     "max_vocab_size": {
       "stopless": 2000,
@@ -12,7 +12,7 @@
   },
   "model": {
     "type": "BOWTopicModelSemiSupervised",
-    "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
+    "background_data_path": "data/train_20k_labelled.bgfreq.json",
     "alpha": 0.1,
     "update_bg": false,
     "input_embedder": {
