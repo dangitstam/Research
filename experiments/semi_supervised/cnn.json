@@ -11,88 +11,88 @@
         }
     },
     "model": {
-      "type": "BOWTopicModelSemiSupervised",
-      "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
-      "alpha": 100,
-      "update_bg": false,
-      "use_filtered_tokens": false,
-      "input_embedder": {
-        "full": {
-          "type": "embedding",
-          "embedding_dim": 300,
-          "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt",
-          "trainable": true,
-          "vocab_namespace": "full"
-        }
-      },
-      "filtered_embedder": {
-        "filtered": {
+        "type": "BOWTopicModelSemiSupervised",
+        "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
+        "alpha": 100,
+        "update_bg": false,
+        "use_filtered_tokens": false,
+        "input_embedder": {
+            "full": {
             "type": "embedding",
             "embedding_dim": 300,
             "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt",
             "trainable": true,
-            "vocab_namespace": "stopless"
-          }
-      },
-      "encoder": {
-        "type": "cnn",
-        "num_filters": 5,
-        "embedding_dim": 300,
-        "output_dim": 300
-      },
-      "vae": {
-        "apply_batchnorm": {
-            "mu": false,
-            "sigma": false
+            "vocab_namespace": "full"
+            }
+        },
+        "filtered_embedder": {
+            "filtered": {
+                "type": "embedding",
+                "embedding_dim": 300,
+                "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt",
+                "trainable": true,
+                "vocab_namespace": "stopless"
+            }
         },
         "encoder": {
-          "input_dim": 2004,
-          "num_layers": 2,
-          "hidden_dims": [1000, 300],
-          "activations": ["relu", "relu"],
-          "dropout": 0.3
+            "type": "cnn",
+            "num_filters": 5,
+            "embedding_dim": 300,
+            "output_dim": 300
         },
-        "decoder": {
-          "input_dim": 10,
-          "num_layers": 1,
-          "hidden_dims": [2004],
-          "activations": ["tanh"]
+        "vae": {
+            "apply_batchnorm": {
+                "mu": false,
+                "sigma": false
+            },
+            "encoder": {
+                "input_dim": 2004,
+                "num_layers": 2,
+                "hidden_dims": [1000, 300],
+                "activations": ["relu", "relu"],
+                "dropout": 0.3
+            },
+            "decoder": {
+                "input_dim": 10,
+                "num_layers": 1,
+                "hidden_dims": [2004],
+                "activations": ["tanh"]
+            },
+            "mu_projection": {
+                "input_dim": 300,
+                "num_layers": 1,
+                "hidden_dims": [10],
+                "activations": ["linear"],
+                "dropout": 0.3
+            },
+            "log_variance_projection": {
+                "input_dim": 300,
+                "num_layers": 1,
+                "hidden_dims": [10],
+                "activations": ["linear"],
+                "dropout": 0.3
+            }
         },
-        "mu_projection": {
-          "input_dim": 300,
-          "num_layers": 1,
-          "hidden_dims": [10],
-          "activations": ["linear"],
-          "dropout": 0.3
-        },
-        "log_variance_projection": {
-          "input_dim": 300,
-          "num_layers": 1,
-          "hidden_dims": [10],
-          "activations": ["linear"],
-          "dropout": 0.3
+        "classification_layer": {
+            "input_dim": 300,
+            "num_layers": 1,
+            "hidden_dims": [2],
+            "activations": ["linear"],
+            "dropout": 0.3
         }
-      },
-      "classification_layer": {
-        "input_dim": 300,
-        "num_layers": 1,
-        "hidden_dims": [2],
-        "activations": ["linear"],
-        "dropout": 0.3
-      }
     },
     "iterator": {
-      "type": "basic",
-      "batch_size": 100
+        "type": "basic",
+        "batch_size": 100
     },
     "trainer": {
-      "num_epochs": 200,
-      "cuda_device": -1,
-      "optimizer": {
-        "type": "adagrad",
-        "lr": 0.002,
-        "weight_decay": 0.0002
-      }
+        "num_epochs": 200,
+        "cuda_device": -1,
+        "optimizer": {
+            "type": "adagrad",
+            "lr": 0.002,
+            "weight_decay": 0.0002
+        }
     }
-  }
+}
   

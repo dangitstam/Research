@@ -11,7 +11,7 @@
         }
     },
     "model": {
-      "type": "BOWTopicModelSemiSupervised",
+      "type": "BOWTopicModelSemiSupervisedBaseline",
       "background_data_path": "data/semi_supervised/train_20k_labelled.bgfreq.json",
       "alpha": 0.9,
       "update_bg": false,

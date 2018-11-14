@@ -33,11 +33,11 @@ def log_standard_categorical(logits: torch.Tensor):
     return cross_entropy
 
 
-def separate_labelled_and_unlabelled_instances(ids: torch.Tensor,
-                                              input_tokens: torch.LongTensor,
-                                              filtered_tokens: torch.Tensor,
-                                              sentiment: torch.LongTensor,
-                                              labelled: torch.LongTensor):
+def separate_labelled_and_unlabelled_instances(ids: torch.Tensor,  # pylint: disable=C0103
+                                               input_tokens: torch.LongTensor,
+                                               filtered_tokens: torch.Tensor,
+                                               sentiment: torch.LongTensor,
+                                               labelled: torch.LongTensor):
     """
     Given a batch of examples, separate them into labelled and unlablled instances.
     """

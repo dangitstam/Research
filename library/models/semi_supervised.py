@@ -95,7 +95,8 @@ class BOWTopicModelSemiSupervised(Model):
         self.batchnorm.weight.requires_grad = False
 
         # Input batchnorm when the representation is shared.
-        self.input_batchnorm = torch.nn.BatchNorm1d(self.encoder.get_output_dim(), eps=0.001, momentum=0.001, affine=True)
+        self.input_batchnorm = torch.nn.BatchNorm1d(self.encoder.get_output_dim(),
+                                                    eps=0.001, momentum=0.001, affine=True)
         self.input_batchnorm.weight.data.copy_(torch.ones(self.encoder.get_output_dim(), dtype=torch.float64))
         self.input_batchnorm.weight.requires_grad = False
 
@@ -157,10 +158,11 @@ class BOWTopicModelSemiSupervised(Model):
         labelled_sentiment = labelled_instances['sentiment']
 
         # Compute supervised and unsupervised objective.
-        L = self.ELBO(labelled_encoded_input, labelled_bow, labelled_sentiment)
+        L = self.ELBO(labelled_encoded_input, labelled_bow, labelled_sentiment) # pylint: disable=C0103
 
         # # When provided, use the unlabelled data.
-        if len(unlabelled_instances['ids']) > 0:
+        U = None  # pylint: disable=C0103
+        if len(unlabelled_instances['ids']) > 0:  # pylint: disable=C1801
             unlabelled_bow = self._compute_stopless_bow(unlabelled_instances['ids'],
                                                         unlabelled_instances['stopless_tokens'])
 
@@ -170,12 +172,7 @@ class BOWTopicModelSemiSupervised(Model):
             # Logits need to be normalized for proper weighting.
             unlabelled_logits = torch.softmax(unlabelled_logits, dim=-1)
 
-            U = self.U(unlabelled_encoded_input, unlabelled_bow, unlabelled_logits)
-        else:
-            U = None
-
-        if self.training:
-            assert U is not None, "Current batch does not contain unlabelled data."
+            U = self.U(unlabelled_encoded_input, unlabelled_bow, unlabelled_logits)   # pylint: disable=C0103
 
         # Classification loss and metrics.
         classification_loss = self.classification_criterion(
@@ -183,6 +180,7 @@ class BOWTopicModelSemiSupervised(Model):
         self.metrics['Accuracy'](labelled_logits, labelled_sentiment)
         self.metrics['Cross_Entropy'](classification_loss)
 
+        # ELBO loss and metrics.
         labelled_loss = -torch.sum(L)
         unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
         self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
@@ -190,7 +188,6 @@ class BOWTopicModelSemiSupervised(Model):
         # Joint supervised and unsupervised learning.
         scaled_classification_loss = self.alpha * classification_loss
         J_alpha = (labelled_loss + unlabelled_loss) + scaled_classification_loss  # pylint: disable=C0103
-
         output_dict['loss'] = J_alpha
 
         # While training, it's helpful to see how the topics are changing.
@@ -206,19 +203,24 @@ class BOWTopicModelSemiSupervised(Model):
 
     def _classify(self, instances: Dict):
         """
-        Produce logits here
+        Given the instances, labelled or unlabelled, selects the correct input
+        to use and classifies it.
+
+        For convenience, returns the encoded input to allow the sharing of the
+        intermidiate state if q(y | h(x)) and q(z | y, h(x)) is desired.
         """
         if self._use_filtered_tokens:
+            token_mask = get_text_field_mask({"filtered": instances['stopless_tokens']})
             embedded_tokens = self.filtered_embedder({"filtered": instances['stopless_tokens']})
-            encoded_input = self.encoder(embedded_tokens)
-            labelled_logits = self.classification_layer(encoded_input)
+            encoded_input = self.encoder(embedded_tokens, token_mask)
+            logits = self.classification_layer(encoded_input)
         else:
             token_mask = get_text_field_mask({"full": instances['tokens']})
             embedded_tokens = self.input_embedder({"full": instances['tokens']})
             encoded_input = self.encoder(embedded_tokens, token_mask)
-            labelled_logits = self.classification_layer(encoded_input)
+            logits = self.classification_layer(encoded_input)
 
-        return labelled_logits, encoded_input
+        return logits, encoded_input
 
     def ELBO(self,  # pylint: disable=C0103
              input_representation: torch.Tensor,
@@ -228,10 +230,10 @@ class BOWTopicModelSemiSupervised(Model):
         Computes ELBO loss. For convenience, also returns classification loss
         given the label.
 
-        :param instances: ``Dict``
-            Instances that contain either labelled or unlabelled data, but not both.
-            If the instances are labelled, `sentiment` is an expected key that
-            should contain the sentiment for each example.
+        :param input_representation: ``torch.Tensor``
+            An encoded version of the input from using the current encoder.
+        :param bow: ``torch.Tensor``
+            The bag-of-words representation of the input excluding stopwords.
         :param sentiment: ``torch.Tensor``
             The target class labels, expexted as (batch,). Used only for
             computing the unlabelled objective; this sentiment is treated
@@ -285,10 +287,16 @@ class BOWTopicModelSemiSupervised(Model):
         """
         Computes loss for unlabelled data.
 
-        :param input_tokens: ``torch.Tensor``
-            The tokenized input, expected as (batch, sequence length)
+        :param input_representation: ``torch.Tensor``
+            An encoded version of the input from using the current encoder.
+        :param bow: ``torch.Tensor``
+            The bag-of-words representation of the input excluding stopwords.
+        :param logits: ``torch.Tensor``
+            The classification logits produced after applying the classifier to
+            the input_representation.
 
-        Returns the sum of ELBO and the entropy of the predicted classification logits.
+        Returns the ELBO objective and the entropy of the predicted classification logits
+        for each example in the batch.
         """
         batch_size = input_representation.size(0)
 
@@ -298,7 +306,7 @@ class BOWTopicModelSemiSupervised(Model):
 
         elbos = torch.zeros(self.num_classes, batch_size).to(device=self.device)
         for i in range(self.num_classes):
-            # Instantiate an artifical labelling for each class.
+            # Instantiate an artifical labelling of each class.
             # Labels are treated as a latent variable that we marginalize over.
             sentiment = (torch.ones(batch_size).long() * i).to(device=self.device)
             elbos[i] = self.ELBO(input_representation, bow, sentiment)
@@ -316,6 +324,8 @@ class BOWTopicModelSemiSupervised(Model):
         """
         Return a vector representation of words in the stopless dimension.
 
+        :param ids: ``torch.Tensor``
+            The id numbers corresponding to the examples in `input_tokens`.
         :param input_tokens: ``torch.Tensor``
             A (batch, sequence length) size tensor.
         """
@@ -373,6 +383,8 @@ class BOWTopicModelSemiSupervised(Model):
         Given the learned (K, vocabulary size) weights, print the
         top k words from each row as a topic.
 
+        :param weights: ``torch.Tensor``
+            The weight matrix whose second dimension equals the vocabulary size.
         :param k: ``int``
             The number of words per topic to display.
         """

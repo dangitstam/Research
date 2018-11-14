@@ -3,10 +3,8 @@ from collections import Counter
 from typing import Dict, Optional
 
 import torch
-import torch.nn as nn
 from allennlp.data.vocabulary import (DEFAULT_OOV_TOKEN, DEFAULT_PADDING_TOKEN,
                                       Vocabulary)
-from allennlp.models.archival import load_archive
 from allennlp.models.model import Model
 from allennlp.modules import FeedForward, Seq2VecEncoder, TextFieldEmbedder
 from allennlp.nn import InitializerApplicator, RegularizerApplicator, util
