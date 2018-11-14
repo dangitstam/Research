@@ -106,12 +106,18 @@ def main():
     train_5k_out = os.path.join(args.save_dir, "train_5k_labelled.jsonl")
     train_10k_out = os.path.join(args.save_dir, "train_10k_labelled.jsonl")
     train_20k_out = os.path.join(args.save_dir, "train_20k_labelled.jsonl")
+    train_labelled_out = os.path.join(args.save_dir, "train_labelled.jsonl")
     valid_out = os.path.join(args.save_dir, "valid.jsonl")
     test_out = os.path.join(args.save_dir, "test.jsonl")
 
-    # Shuffle training and save a validation set.
+    # Shuffle training and save a validation set (first 5k).
+    # Remaining 20K examples will be the labelled instances.
     random.Random(args.seed).shuffle(train_examples)
     valid_examples = train_examples[:5000]
+
+    print("Saving labelled training set:")
+    write_jsons_to_file(train_examples[5000:], train_labelled_out)
+
     print("Saving validation set:")
     write_jsons_to_file(valid_examples, valid_out)
 
