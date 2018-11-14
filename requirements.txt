@@ -1,0 +1,7 @@
+
+# AllenNLP & Test Suite
+allennlp==0.7.0
+pytest
+pytest-pythonpath
+ujson
+tabulate
