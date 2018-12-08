@@ -19,13 +19,14 @@
       }
     },
     "encoder": {
-      "type": "cnn",
-      "num_filters": 32,
-      "embedding_dim": 300,
-      "output_dim": 300
-    },
+      "type": "lstm",
+      "input_size": 300,
+      "num_layers": 3,
+      "hidden_size": 512,
+      "bidirectional": true
+    },    
     "classification_layer": {
-      "input_dim": 300,
+      "input_dim": 1024,
       "num_layers": 1,
       "hidden_dims": [2],
       "activations": ["linear"],
@@ -40,7 +41,8 @@
     "cuda_device": 0,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0001
+      "lr": 0.0017,
+      "weight_decay": 0.0001
     }
   }
 }

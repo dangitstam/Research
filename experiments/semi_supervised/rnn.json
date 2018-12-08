@@ -35,10 +35,11 @@
       }
     },
     "encoder": {
-      "type": "cnn",
-      "num_filters": 32,
-      "embedding_dim": 300,
-      "output_dim": 300
+      "type": "lstm",
+      "input_size": 300,
+      "num_layers": 3,
+      "hidden_size": 512,
+      "bidirectional": true
     },
     "vae": {
       "apply_batchnorm": {
@@ -47,10 +48,9 @@
       },
       "encoder": {
         "input_dim": 2004,
-        "num_layers": 2,
-        "hidden_dims": [1000, 300],
-        "activations": ["relu", "relu"],
-        "dropout": 0.3
+        "num_layers": 1,
+        "hidden_dims": [300],
+        "activations": ["softplus"],
       },
       "decoder": {
         "input_dim": 10,
@@ -63,21 +63,19 @@
         "num_layers": 1,
         "hidden_dims": [10],
         "activations": ["linear"],
-        "dropout": 0.3
       },
       "log_variance_projection": {
         "input_dim": 300,
         "num_layers": 1,
         "hidden_dims": [10],
         "activations": ["linear"],
-        "dropout": 0.3
       }
     },
     "classification_layer": {
-      "input_dim": 300,
+      "input_dim": 1024,
       "num_layers": 1,
       "hidden_dims": [2],
-      "activations": ["linear"],
+      "activations": ["linear"]
     }
   },
   "iterator": {
@@ -85,12 +83,13 @@
     "batch_size": 100
   },
   "trainer": {
-    "num_epochs": 200,
-    "cuda_device": -1,
+    "validation_metric": "+Accuracy",
+    "num_epochs": 20,
+    "cuda_device": 0,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0007,
-      "weight_decay": 0.00007
+      "lr": 0.0017,
+      "weight_decay": 0.0001
     }
   }
 }

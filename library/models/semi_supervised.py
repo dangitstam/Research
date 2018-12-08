@@ -129,7 +129,7 @@ class BOWTopicModelSemiSupervised(Model):
         self._id_to_bow = {}
 
         # For easy tranfer to the GPU.
-        self.device = beta.device
+        self.device = self.beta.device
 
         initializer(self)
 
@@ -157,6 +157,9 @@ class BOWTopicModelSemiSupervised(Model):
 
         labelled_sentiment = labelled_instances['sentiment']
 
+        self.device = labelled_encoded_input.device
+        labelled_bow = labelled_bow.to(device=self.device)
+
         # Compute supervised and unsupervised objective.
         L = self.ELBO(labelled_encoded_input, labelled_bow, labelled_sentiment) # pylint: disable=C0103
 
@@ -165,6 +168,8 @@ class BOWTopicModelSemiSupervised(Model):
         if len(unlabelled_instances['ids']) > 0:  # pylint: disable=C1801
             unlabelled_bow = self._compute_stopless_bow(unlabelled_instances['ids'],
                                                         unlabelled_instances['stopless_tokens'])
+
+            unlabelled_bow = unlabelled_bow.to(device=self.device)
 
             # Logits for unlabelled data where the label is a latent variable.
             unlabelled_logits, unlabelled_encoded_input = self._classify(unlabelled_instances)
@@ -182,11 +187,12 @@ class BOWTopicModelSemiSupervised(Model):
 
         # ELBO loss and metrics.
         labelled_loss = -torch.sum(L)
-        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
-        self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
+        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]).to(self.device))
+        self.metrics['ELBO'](labelled_loss.item() + unlabelled_loss.item())
 
         # Joint supervised and unsupervised learning.
         scaled_classification_loss = self.alpha * classification_loss
+
         J_alpha = (labelled_loss + unlabelled_loss) + scaled_classification_loss  # pylint: disable=C0103
         output_dict['loss'] = J_alpha
 
