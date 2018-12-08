@@ -187,11 +187,12 @@ class BOWTopicModelSemiSupervised(Model):
 
         # ELBO loss and metrics.
         labelled_loss = -torch.sum(L)
-        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]))
-        self.metrics['ELBO']((labelled_loss + unlabelled_loss).item())
+        unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]).to(self.device))
+        self.metrics['ELBO'](labelled_loss.item() + unlabelled_loss.item())
 
         # Joint supervised and unsupervised learning.
         scaled_classification_loss = self.alpha * classification_loss
+
         J_alpha = (labelled_loss + unlabelled_loss) + scaled_classification_loss  # pylint: disable=C0103
         output_dict['loss'] = J_alpha
 

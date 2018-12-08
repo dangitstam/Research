@@ -16,7 +16,7 @@
         "embedding_dim": 300,
         "trainable": true,
         "vocab_namespace": "tokens",
-        "pretrained_file": "/Users/dangitstam/Research/glove/glove.6B.300d.txt"
+        "pretrained_file": "/home/dangt7/Research/glove/glove.6B.300d.txt"
       }
     },
     "encoder": {
@@ -32,16 +32,15 @@
   },
   "iterator": {
     "type": "basic",
-    "batch_size": 32
+    "batch_size": 100
   },
   "trainer": {
-    "num_epochs": 10,
-    "cuda_device": -1,
-    "grad_clipping": 0.5,
+    "num_epochs": 20,
+    "cuda_device": 0,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0001,
-      "weight_decay": 0.00001
+      "lr": 0.001,
+      "weight_decay": 0.0001
     }
   }
 }
