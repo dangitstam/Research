@@ -28,3 +28,9 @@ VALID_PATH="../$SAVE_PATH/valid.jsonl"
 VALID_SAVE_PATH="../$SAVE_PATH/valid.filtered.jsonl"
 python filter_stopwords.py --data-path $VALID_PATH --save-path $VALID_SAVE_PATH
 rm "valid.bgfreq.json"
+
+# Preprocess test data.
+VALID_PATH="../$SAVE_PATH/test.jsonl"
+VALID_SAVE_PATH="../$SAVE_PATH/test.filtered.jsonl"
+python filter_stopwords.py --data-path $VALID_PATH --save-path $VALID_SAVE_PATH
+rm "test.bgfreq.json"
