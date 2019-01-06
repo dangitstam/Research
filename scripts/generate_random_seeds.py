@@ -8,6 +8,8 @@ def main():
     """
     Given a config file, produce a directory containing copies of that
     config file with randomly generated random seeds.
+
+    TODO: Include a bash script that runs each of these one at a time.
     """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -31,13 +33,29 @@ def main():
     if not os.path.exists(args.save_dir):
         os.mkdir(args.save_dir)
 
+    results_dir = os.path.join(args.save_dir, "results")
+    if not os.path.exists(results_dir):
+        os.mkdir(results_dir)
+
+    script = "#!/bin/sh\n\n"
+
     def save_randomly_seeded_config(config_json, iteration):
-        new_config_basename = (config_basename.split(".")[0] +
-                               str(iteration) + ".json")
+        nonlocal script
+
+        experiment_name = config_basename.split(".")[0] + str(iteration) 
+        new_config_basename = experiment_name + ".json"
         new_config_path = os.path.join(args.save_dir, new_config_basename)
         new_config_file = open(new_config_path, "w")
         json.dump(config_json, new_config_file, indent=2)
-        new_config_file.close()       
+        new_config_file.close()
+
+        # Write to the bash script.
+        command = "allennlp train {} --include-package library -s {}\n".format(
+            new_config_path,
+            os.path.join(results_dir, experiment_name)
+        )
+
+        script += command
 
     # Each new config file will be suffixed with a number from 0 to
     # (num_seeds - 1).
@@ -52,6 +70,10 @@ def main():
         config_json_randomly_seeded["pytorch_seed"] = pytorch_seed
 
         save_randomly_seeded_config(config_json_randomly_seeded, seed)
+
+    with open(os.path.join(args.save_dir, "run_experiments.sh"), "w") as f:
+        f.write(script)
+        f.close()
 
 
 if __name__ == "__main__":
