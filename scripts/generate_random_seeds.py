@@ -22,6 +22,8 @@ def main():
     parser.add_argument("--save-dir", type=str,
                         default=project_root,
                         help="Directory to store the randomly seeded configs.")
+    parser.add_argument("--omit-topic-printing", action='store_true',
+                        help="For convenience, overrides a config file's `print_topics` flag.")
     parser.add_argument("--num-seeds", type=int,
                         default=10,
                         help="Number of randomly seeded configs to generate.")
@@ -29,6 +31,8 @@ def main():
 
     config_basename = os.path.basename(args.config_path)
     config_json = json.load(open(args.config_path, "r"))
+
+    import pdb; pdb.set_trace()
 
     if not os.path.exists(args.save_dir):
         os.mkdir(args.save_dir)
@@ -68,6 +72,10 @@ def main():
         config_json_randomly_seeded["random_seed"] = random_seed
         config_json_randomly_seeded["numpy_seed"] = numpy_seed
         config_json_randomly_seeded["pytorch_seed"] = pytorch_seed
+
+        # Exclude printing of topics.
+        if args.omit_topic_printing:
+            config_json_randomly_seeded["model"]["print_topics"] = False
 
         save_randomly_seeded_config(config_json_randomly_seeded, seed)
 
