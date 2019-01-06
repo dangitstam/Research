@@ -108,14 +108,14 @@
   },
   "trainer": {
     "num_epochs": 200,
-    "cuda_device": -1,
+    "cuda_device": 0,
     "optimizer": {
       "type": "adam",
       "lr": 0.0007,
       "weight_decay": 7e-05
     }
   },
-  "random_seed": 3352,
-  "numpy_seed": 1860,
-  "pytorch_seed": 5886
+  "random_seed": 4372,
+  "numpy_seed": 1931,
+  "pytorch_seed": 1236
 }
