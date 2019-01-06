@@ -86,7 +86,7 @@
   },
   "trainer": {
     "num_epochs": 200,
-    "cuda_device": -1,
+    "cuda_device": 0,
     "optimizer": {
       "type": "adam",
       "lr": 0.0007,
