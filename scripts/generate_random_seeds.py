@@ -32,8 +32,6 @@ def main():
     config_basename = os.path.basename(args.config_path)
     config_json = json.load(open(args.config_path, "r"))
 
-    import pdb; pdb.set_trace()
-
     if not os.path.exists(args.save_dir):
         os.mkdir(args.save_dir)
 
