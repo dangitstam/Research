@@ -13,16 +13,14 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "data/train_20k_labelled.bgfreq.json",
-    "alpha": 100,
+    "alpha": 0.1,
     "update_bg": false,
-    "use_filtered_tokens": false,
     "input_embedder": {
       "full": {
-      "type": "embedding",
-      "embedding_dim": 300,
-      "pretrained_file": "/home/dangt7/Research/glove/glove.6B.300d.txt",
-      "trainable": true,
-      "vocab_namespace": "full"
+        "type": "embedding",
+        "embedding_dim": 300,
+        "trainable": true,
+        "vocab_namespace": "full"
       }
     },
     "filtered_embedder": {
@@ -35,11 +33,8 @@
       }
     },
     "encoder": {
-      "type": "lstm",
-      "input_size": 300,
-      "num_layers": 3,
-      "hidden_size": 512,
-      "bidirectional": true
+      "type": "boe",
+      "embedding_dim": 300
     },
     "vae": {
       "apply_batchnorm": {
@@ -48,34 +43,56 @@
       },
       "encoder": {
         "input_dim": 2004,
-        "num_layers": 1,
-        "hidden_dims": [300],
-        "activations": ["softplus"]
+        "num_layers": 2,
+        "hidden_dims": [
+          1000,
+          300
+        ],
+        "activations": [
+          "tanh",
+          "tanh"
+        ]
       },
       "decoder": {
         "input_dim": 10,
         "num_layers": 1,
-        "hidden_dims": [2004],
-        "activations": ["tanh"]
+        "hidden_dims": [
+          2004
+        ],
+        "activations": [
+          "tanh"
+        ]
       },
       "mu_projection": {
         "input_dim": 300,
         "num_layers": 1,
-        "hidden_dims": [10],
-        "activations": ["linear"]
+        "hidden_dims": [
+          10
+        ],
+        "activations": [
+          "linear"
+        ]
       },
       "log_variance_projection": {
         "input_dim": 300,
         "num_layers": 1,
-        "hidden_dims": [10],
-        "activations": ["linear"]
+        "hidden_dims": [
+          10
+        ],
+        "activations": [
+          "linear"
+        ]
       }
     },
     "classification_layer": {
-      "input_dim": 1024,
+      "input_dim": 300,
       "num_layers": 1,
-      "hidden_dims": [2],
-      "activations": ["linear"]
+      "hidden_dims": [
+        2
+      ],
+      "activations": [
+        "linear"
+      ]
     }
   },
   "iterator": {
@@ -83,14 +100,15 @@
     "batch_size": 100
   },
   "trainer": {
-    "validation_metric": "+Accuracy",
     "num_epochs": 20,
     "cuda_device": 0,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0017,
+      "lr": 0.001,
       "weight_decay": 0.0001
     }
-  }
+  },
+  "random_seed": 2620,
+  "numpy_seed": 7794,
+  "pytorch_seed": 3986
 }
-  

@@ -77,7 +77,7 @@
       "input_dim": 300,
       "num_layers": 1,
       "hidden_dims": [2],
-      "activations": ["linear"],
+      "activations": ["linear"]
     }
   },
   "iterator": {
