@@ -54,6 +54,7 @@ class BOWTopicModelSemiSupervised(Model):
                  filtered_embedder: TextFieldEmbedder,
                  alpha: float = 0.1,
                  background_data_path: str = None,
+                 print_topics: bool = True,
                  update_bg: bool = True,
                  use_filtered_tokens: bool = True,
                  use_shared_representation: bool = False,
@@ -124,6 +125,8 @@ class BOWTopicModelSemiSupervised(Model):
 
         # For computing metrics and printing topics.
         self.step = 0
+
+        self.print_topics = print_topics
 
         # Cache bows for faster training.
         self._id_to_bow = {}
@@ -197,7 +200,7 @@ class BOWTopicModelSemiSupervised(Model):
         output_dict['loss'] = J_alpha
 
         # While training, it's helpful to see how the topics are changing.
-        if self.training and self.step == 100:
+        if self.print_topics and self.training and self.step == 100:
             print(tabulate(self.extract_topics(self.beta), headers=["Topic #", "Words"]))
             print(tabulate(self.extract_topics(self.covariates), headers=["Covariate #", "Words"]))
             self.step = 0
