@@ -72,7 +72,7 @@ def main():
         # Evaluate the model on test.
         command = ("allennlp evaluate {}/model.tar.gz"
                    "/data/dangt7/IMDB/test.filtered.jsonl"
-                   "--include-package library &>> {}.txt").format(
+                   "--include-package library &>> {}.txt\n").format(
             os.path.join(results_dir, experiment_name),
             os.path.join(results_dir, experiment_name, "test.txt")
         )
