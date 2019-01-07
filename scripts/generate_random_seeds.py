@@ -66,6 +66,14 @@ def main():
         )
         script += command
 
+        # Evaluate the model on test.
+        command = ("allennlp evaluate {}/model.tar.gz"
+                   "/data/dangt7/IMDB/test.filtered.jsonl"
+                   "--include-package library &>> {}.txt").format(
+            os.path.join(results_dir, experiment_name),
+            os.path.join(results_dir, experiment_name, "test.txt")
+        )
+
     # Each new config file will be suffixed with a number from 0 to
     # (num_seeds - 1).
     for seed in range(args.num_seeds):
