@@ -59,6 +59,13 @@ def main():
 
         script += command
 
+        # For saving space; particularly good models can always be
+        # re-trained.
+        command = "rm -rf {}/*.th\n".format(
+            os.path.join(results_dir, experiment_name)
+        )
+        script += command
+
     # Each new config file will be suffixed with a number from 0 to
     # (num_seeds - 1).
     for seed in range(args.num_seeds):
