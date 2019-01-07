@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import shutil
 import random
 
 
@@ -32,8 +33,10 @@ def main():
     config_basename = os.path.basename(args.config_path)
     config_json = json.load(open(args.config_path, "r"))
 
-    if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir)
+    if os.path.exists(args.save_dir):
+        shutil.rmtree(args.save_dir)
+
+    os.mkdir(args.save_dir)
 
     results_dir = os.path.join(args.save_dir, "results")
     if not os.path.exists(results_dir):
