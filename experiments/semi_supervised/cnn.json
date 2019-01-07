@@ -2,8 +2,8 @@
   "dataset_reader": {
     "type": "document_reader_semi_supervised"
   },
-  "train_data_path": "data/train_20k_labelled.filtered.jsonl",
-  "validation_data_path": "data/valid.filtered.jsonl",
+  "train_data_path": "/data/dangt7/IMDB/train_20k_labelled.filtered.jsonl",
+  "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",
   "vocabulary": {
     "max_vocab_size": {
       "stopless": 2000,
@@ -12,15 +12,15 @@
   },
   "model": {
     "type": "BOWTopicModelSemiSupervised",
-    "background_data_path": "data/train_20k_labelled.bgfreq.json",
-    "alpha": 0.01,
+    "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
+    "alpha": 0.1,
     "update_bg": false,
     "use_filtered_tokens": false,
     "input_embedder": {
       "full": {
       "type": "embedding",
       "embedding_dim": 300,
-      "pretrained_file": "/home/dangt7/Research/glove/glove.6B.300d.txt",
+      "pretrained_file": "/data/dangt7/glove/glove.6B.300d.txt",
       "trainable": true,
       "vocab_namespace": "full"
       }
@@ -29,7 +29,7 @@
       "filtered": {
         "type": "embedding",
         "embedding_dim": 300,
-        "pretrained_file": "/home/dangt7/Research/glove/glove.6B.300d.txt",
+        "pretrained_file": "/data/dangt7/glove/glove.6B.300d.txt",
         "trainable": true,
         "vocab_namespace": "stopless"
       }
