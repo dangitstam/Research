@@ -13,7 +13,7 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "data/train_20k_labelled.bgfreq.json",
-    "alpha": 0.1,
+    "alpha": 0.01,
     "update_bg": false,
     "input_embedder": {
       "full": {
@@ -78,8 +78,10 @@
     "batch_size": 100
   },
   "trainer": {
-    "num_epochs": 20,
+    "validation_metric": "+Accuracy",
+    "num_epochs": 200,
     "cuda_device": 0,
+    "patience": 20,
     "optimizer": {
       "type": "adam",
       "lr": 0.001,

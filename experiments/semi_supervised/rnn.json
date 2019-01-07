@@ -13,7 +13,7 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "data/train_20k_labelled.bgfreq.json",
-    "alpha": 100,
+    "alpha": 0.01,
     "update_bg": false,
     "use_filtered_tokens": false,
     "input_embedder": {
@@ -38,7 +38,7 @@
       "type": "lstm",
       "input_size": 300,
       "num_layers": 3,
-      "hidden_size": 512,
+      "hidden_size": 256,
       "bidirectional": true
     },
     "vae": {
@@ -84,8 +84,9 @@
   },
   "trainer": {
     "validation_metric": "+Accuracy",
-    "num_epochs": 20,
+    "num_epochs": 200,
     "cuda_device": 0,
+    "patience": 20,
     "optimizer": {
       "type": "adam",
       "lr": 0.0017,
