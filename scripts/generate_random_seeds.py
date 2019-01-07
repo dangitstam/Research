@@ -77,6 +77,8 @@ def main():
             os.path.join(results_dir, experiment_name, "test.txt")
         )
 
+        script += command
+
     # Each new config file will be suffixed with a number from 0 to
     # (num_seeds - 1).
     for seed in range(args.num_seeds):
