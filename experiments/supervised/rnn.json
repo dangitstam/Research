@@ -22,14 +22,14 @@
       "type": "lstm",
       "input_size": 300,
       "num_layers": 3,
-      "hidden_size": 512,
+      "hidden_size": 300,
       "bidirectional": true
     },    
     "classification_layer": {
-      "input_dim": 1024,
+      "input_dim": 600,
       "num_layers": 1,
       "hidden_dims": [2],
-      "activations": ["linear"],
+      "activations": ["linear"]
     }
   },
   "iterator": {
@@ -37,12 +37,14 @@
     "batch_size": 32
   },
   "trainer": {
+    "validation_metric": "+accuracy",
+    "patience": 10,
     "num_epochs": 20,
+    "patience": 10,
     "cuda_device": 0,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0017,
-      "weight_decay": 0.0001
+      "lr": 0.0001
     }
   }
 }

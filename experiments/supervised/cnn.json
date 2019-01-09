@@ -28,7 +28,7 @@
       "input_dim": 300,
       "num_layers": 1,
       "hidden_dims": [2],
-      "activations": ["linear"],
+      "activations": ["linear"]
     }
   },
   "iterator": {
@@ -36,7 +36,10 @@
     "batch_size": 32
   },
   "trainer": {
+    "validation_metric": "+accuracy",
+    "patience": 10,
     "num_epochs": 20,
+    "patience": 10,
     "cuda_device": 0,
     "optimizer": {
       "type": "adam",
