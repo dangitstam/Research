@@ -3,8 +3,8 @@
     "type": "document_reader",
     "use_stopless_tokens": true
   },
-  "train_data_path": "data/train_labelled.filtered.jsonl",
-  "validation_data_path": "data/valid.filtered.jsonl",
+  "train_data_path": "/data/dangt7/IMDB/train_labelled.filtered.jsonl",
+  "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",
   "vocabulary": {
     "max_vocab_size": 2000
   },
@@ -16,7 +16,7 @@
         "embedding_dim": 300,
         "trainable": true,
         "vocab_namespace": "tokens",
-        "pretrained_file": "/home/dangt7/Research/glove/glove.6B.300d.txt"
+        "pretrained_file": "/data/dangt7/glove/glove.6B.300d.txt"
       }
     },
     "encoder": {
