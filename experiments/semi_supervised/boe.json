@@ -43,7 +43,7 @@
       },
       "encoder": {
         "input_dim": 2004,
-        "num_layers": 1,
+        "num_layers": 2,
         "hidden_dims": [1000, 300],
         "activations": ["relu", "relu"]
       },
