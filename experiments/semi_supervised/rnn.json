@@ -13,7 +13,7 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
-    "alpha": 0.1,
+    "alpha": 20,
     "update_bg": false,
     "use_filtered_tokens": false,
     "input_embedder": {
@@ -38,7 +38,7 @@
       "type": "lstm",
       "input_size": 300,
       "num_layers": 3,
-      "hidden_size": 256,
+      "hidden_size": 300,
       "bidirectional": true
     },
     "vae": {
@@ -48,9 +48,9 @@
       },
       "encoder": {
         "input_dim": 2004,
-        "num_layers": 1,
-        "hidden_dims": [300],
-        "activations": ["softplus"]
+        "num_layers": 2,
+        "hidden_dims": [1000, 300],
+        "activations": ["relu", "relu"]
       },
       "decoder": {
         "input_dim": 10,
@@ -72,7 +72,7 @@
       }
     },
     "classification_layer": {
-      "input_dim": 1024,
+      "input_dim": 600,
       "num_layers": 1,
       "hidden_dims": [2],
       "activations": ["linear"]
@@ -86,11 +86,10 @@
     "validation_metric": "+Accuracy",
     "num_epochs": 200,
     "cuda_device": 0,
-    "patience": 20,
+    "patience": 10,
     "optimizer": {
       "type": "adam",
-      "lr": 0.0017,
-      "weight_decay": 0.0001
+      "lr": 0.002
     }
   }
 }

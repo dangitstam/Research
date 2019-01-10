@@ -10,9 +10,9 @@ python scripts/generate_random_seeds.py --config-path experiments/semi_supervise
 python scripts/generate_random_seeds.py --config-path experiments/semi_supervised/rnn.json --save-dir experiments/semi_supervised/rnn_trials --omit-topic-printing
 
 # Supervised experiments
-python scripts/generate_random_seeds.py --config-path experiments/supervised/boe.json --save-dir experiments/supervised/boe_trials --omit-topic-printing
-python scripts/generate_random_seeds.py --config-path experiments/supervised/cnn.json --save-dir experiments/supervised/cnn_trials --omit-topic-printing
-python scripts/generate_random_seeds.py --config-path experiments/supervised/rnn.json --save-dir experiments/supervised/rnn_trials --omit-topic-printing
+python scripts/generate_random_seeds.py --config-path experiments/supervised/boe.json --save-dir experiments/supervised/boe_trials
+python scripts/generate_random_seeds.py --config-path experiments/supervised/cnn.json --save-dir experiments/supervised/cnn_trials
+python scripts/generate_random_seeds.py --config-path experiments/supervised/rnn.json --save-dir experiments/supervised/rnn_trials
 
 #######################################################
 ### Produce test results for each experiment

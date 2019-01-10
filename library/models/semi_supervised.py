@@ -66,7 +66,7 @@ class BOWTopicModelSemiSupervised(Model):
             'KL-Divergence': Average(),
             'Reconstruction': Average(),
             'Accuracy': CategoricalAccuracy(),
-            'Cross_Entropy': Average(),
+            'Scaled_Cross_Entropy': Average(),
             'ELBO': Average()
         }
 
@@ -186,17 +186,15 @@ class BOWTopicModelSemiSupervised(Model):
         classification_loss = self.classification_criterion(
             labelled_logits, labelled_sentiment)
         self.metrics['Accuracy'](labelled_logits, labelled_sentiment)
-        self.metrics['Cross_Entropy'](classification_loss)
 
         # ELBO loss and metrics.
         labelled_loss = -torch.sum(L)
         unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]).to(self.device))
         self.metrics['ELBO'](labelled_loss.item() + unlabelled_loss.item())
+        self.metrics['Scaled_Cross_Entropy'](self.alpha * classification_loss)
 
         # Joint supervised and unsupervised learning.
-        scaled_classification_loss = self.alpha * classification_loss
-
-        J_alpha = (labelled_loss + unlabelled_loss) + scaled_classification_loss  # pylint: disable=C0103
+        J_alpha = (labelled_loss + unlabelled_loss) + (self.alpha * classification_loss)  # pylint: disable=C0103
         output_dict['loss'] = J_alpha
 
         # While training, it's helpful to see how the topics are changing.

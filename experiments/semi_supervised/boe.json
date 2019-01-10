@@ -13,7 +13,7 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
-    "alpha": 0.1,
+    "alpha": 10,
     "update_bg": false,
     "input_embedder": {
       "full": {
@@ -43,9 +43,9 @@
       },
       "encoder": {
         "input_dim": 2004,
-        "num_layers": 2,
-        "hidden_dims": [1000, 300],
-        "activations": ["tanh", "tanh"]
+        "num_layers": 1,
+        "hidden_dims": [300],
+        "activations": ["softplus"]
       },
       "decoder": {
         "input_dim": 10,
@@ -81,11 +81,10 @@
     "validation_metric": "+Accuracy",
     "num_epochs": 200,
     "cuda_device": 0,
-    "patience": 20,
+    "patience": 10,
     "optimizer": {
       "type": "adam",
-      "lr": 0.001,
-      "weight_decay": 0.0001
+      "lr": 0.002
     }
   }
 }
