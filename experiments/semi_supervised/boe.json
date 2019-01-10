@@ -44,8 +44,8 @@
       "encoder": {
         "input_dim": 2004,
         "num_layers": 1,
-        "hidden_dims": [300],
-        "activations": ["softplus"]
+        "hidden_dims": [1000, 300],
+        "activations": ["relu", "relu"]
       },
       "decoder": {
         "input_dim": 10,
@@ -80,11 +80,12 @@
   "trainer": {
     "validation_metric": "+Accuracy",
     "num_epochs": 200,
+    "patience": 20,
     "cuda_device": 0,
-    "patience": 10,
     "optimizer": {
       "type": "adam",
-      "lr": 0.002
+      "lr": 0.001,
+      "weight_decay": 0.0001
     }
   }
 }

@@ -13,7 +13,7 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
-    "alpha": 20,
+    "alpha": 10,
     "update_bg": false,
     "use_filtered_tokens": false,
     "input_embedder": {
@@ -85,11 +85,12 @@
   "trainer": {
     "validation_metric": "+Accuracy",
     "num_epochs": 200,
+    "patience": 20,
     "cuda_device": 0,
-    "patience": 10,
     "optimizer": {
       "type": "adam",
-      "lr": 0.002
+      "lr": 0.001,
+      "weight_decay": 0.0001
     }
   }
 }
