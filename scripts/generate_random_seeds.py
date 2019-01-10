@@ -47,7 +47,7 @@ def main():
     def save_randomly_seeded_config(config_json, iteration):
         nonlocal script
 
-        experiment_name = config_basename.split(".")[0] + str(iteration) 
+        experiment_name = config_basename.split(".")[0] + str(iteration)
         new_config_basename = experiment_name + ".json"
         new_config_path = os.path.join(args.save_dir, new_config_basename)
         new_config_file = open(new_config_path, "w")
@@ -73,9 +73,9 @@ def main():
         command = ("allennlp evaluate {}/model.tar.gz "
                    "/data/dangt7/IMDB/test.filtered.jsonl "
                    "--include-package library &>> {}\n").format(
-            os.path.join(results_dir, experiment_name),
-            os.path.join(results_dir, experiment_name, "test.txt")
-        )
+                       os.path.join(results_dir, experiment_name),
+                       os.path.join(results_dir, experiment_name, "test.txt")
+                   )
 
         script += command
 
@@ -97,7 +97,7 @@ def main():
 
         save_randomly_seeded_config(config_json_randomly_seeded, seed)
 
-    with open(os.path.join(args.save_dir, "run_experiments.sh"), "w") as f:
+    with open(os.path.join(args.save_dir, "run_experiments.sh"), "w") as f:  # pylint: disable=C0103
         f.write(script)
         f.close()
 
