@@ -13,7 +13,7 @@
   "model": {
     "type": "BOWTopicModelSemiSupervised",
     "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
-    "alpha": 10,
+    "alpha": 50,
     "update_bg": false,
     "use_filtered_tokens": false,
     "input_embedder": {
