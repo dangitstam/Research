@@ -54,6 +54,7 @@ class BOWTopicModelSemiSupervised(Model):
                  filtered_embedder: TextFieldEmbedder,
                  alpha: float = 0.1,
                  background_data_path: str = None,
+                 print_topics: bool = True,
                  update_bg: bool = True,
                  use_filtered_tokens: bool = True,
                  use_shared_representation: bool = False,
@@ -65,7 +66,7 @@ class BOWTopicModelSemiSupervised(Model):
             'KL-Divergence': Average(),
             'Reconstruction': Average(),
             'Accuracy': CategoricalAccuracy(),
-            'Cross_Entropy': Average(),
+            'Scaled_Cross_Entropy': Average(),
             'ELBO': Average()
         }
 
@@ -125,6 +126,8 @@ class BOWTopicModelSemiSupervised(Model):
         # For computing metrics and printing topics.
         self.step = 0
 
+        self.print_topics = print_topics
+
         # Cache bows for faster training.
         self._id_to_bow = {}
 
@@ -183,21 +186,19 @@ class BOWTopicModelSemiSupervised(Model):
         classification_loss = self.classification_criterion(
             labelled_logits, labelled_sentiment)
         self.metrics['Accuracy'](labelled_logits, labelled_sentiment)
-        self.metrics['Cross_Entropy'](classification_loss)
 
         # ELBO loss and metrics.
         labelled_loss = -torch.sum(L)
         unlabelled_loss = -torch.sum(U if U is not None else torch.FloatTensor([0]).to(self.device))
         self.metrics['ELBO'](labelled_loss.item() + unlabelled_loss.item())
+        self.metrics['Scaled_Cross_Entropy'](self.alpha * classification_loss)
 
         # Joint supervised and unsupervised learning.
-        scaled_classification_loss = self.alpha * classification_loss
-
-        J_alpha = (labelled_loss + unlabelled_loss) + scaled_classification_loss  # pylint: disable=C0103
+        J_alpha = (labelled_loss + unlabelled_loss) + (self.alpha * classification_loss)  # pylint: disable=C0103
         output_dict['loss'] = J_alpha
 
         # While training, it's helpful to see how the topics are changing.
-        if self.training and self.step == 100:
+        if self.print_topics and self.training and self.step == 100:
             print(tabulate(self.extract_topics(self.beta), headers=["Topic #", "Words"]))
             print(tabulate(self.extract_topics(self.covariates), headers=["Covariate #", "Words"]))
             self.step = 0

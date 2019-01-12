@@ -1,0 +1,55 @@
+{
+  "dataset_reader": {
+    "type": "document_reader",
+    "use_stopless_tokens": true
+  },
+  "train_data_path": "/data/dangt7/IMDB/train_labelled.filtered.jsonl",
+  "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",
+  "vocabulary": {
+    "max_vocab_size": 2000
+  },
+  "model": {
+    "type": "seq2vec_classifier",
+    "text_field_embedder": {
+      "tokens": {
+        "type": "embedding",
+        "embedding_dim": 300,
+        "trainable": true,
+        "vocab_namespace": "tokens",
+        "pretrained_file": "/data/dangt7/glove/glove.6B.300d.txt"
+      }
+    },
+    "encoder": {
+      "type": "boe",
+      "embedding_dim": 300
+    },
+    "classification_layer": {
+      "input_dim": 300,
+      "num_layers": 1,
+      "hidden_dims": [
+        2
+      ],
+      "activations": [
+        "linear"
+      ]
+    }
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 100
+  },
+  "trainer": {
+    "validation_metric": "+accuracy",
+    "num_epochs": 200,
+    "patience": 20,
+    "cuda_device": 0,
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.001,
+      "weight_decay": 0.001
+    }
+  },
+  "random_seed": 5658,
+  "numpy_seed": 4139,
+  "pytorch_seed": 225
+}
