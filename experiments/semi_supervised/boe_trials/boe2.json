@@ -1,0 +1,117 @@
+{
+  "dataset_reader": {
+    "type": "document_reader_semi_supervised"
+  },
+  "train_data_path": "/data/dangt7/IMDB/train_20k_labelled.filtered.jsonl",
+  "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",
+  "vocabulary": {
+    "max_vocab_size": {
+      "stopless": 2000,
+      "full": 10000
+    }
+  },
+  "model": {
+    "type": "BOWTopicModelSemiSupervised",
+    "background_data_path": "/data/dangt7/IMDB/train_20k_labelled.bgfreq.json",
+    "alpha": 50,
+    "update_bg": false,
+    "input_embedder": {
+      "full": {
+        "type": "embedding",
+        "embedding_dim": 300,
+        "trainable": true,
+        "vocab_namespace": "full"
+      }
+    },
+    "filtered_embedder": {
+      "filtered": {
+        "type": "embedding",
+        "embedding_dim": 300,
+        "pretrained_file": "/data/dangt7/glove/glove.6B.300d.txt",
+        "trainable": true,
+        "vocab_namespace": "stopless"
+      }
+    },
+    "encoder": {
+      "type": "boe",
+      "embedding_dim": 300
+    },
+    "vae": {
+      "apply_batchnorm": {
+        "mu": false,
+        "sigma": false
+      },
+      "encoder": {
+        "input_dim": 2004,
+        "num_layers": 2,
+        "hidden_dims": [
+          1000,
+          300
+        ],
+        "activations": [
+          "relu",
+          "relu"
+        ]
+      },
+      "decoder": {
+        "input_dim": 10,
+        "num_layers": 1,
+        "hidden_dims": [
+          2004
+        ],
+        "activations": [
+          "tanh"
+        ]
+      },
+      "mu_projection": {
+        "input_dim": 300,
+        "num_layers": 1,
+        "hidden_dims": [
+          10
+        ],
+        "activations": [
+          "linear"
+        ]
+      },
+      "log_variance_projection": {
+        "input_dim": 300,
+        "num_layers": 1,
+        "hidden_dims": [
+          10
+        ],
+        "activations": [
+          "linear"
+        ]
+      }
+    },
+    "classification_layer": {
+      "input_dim": 300,
+      "num_layers": 1,
+      "hidden_dims": [
+        2
+      ],
+      "activations": [
+        "linear"
+      ]
+    },
+    "print_topics": false
+  },
+  "iterator": {
+    "type": "basic",
+    "batch_size": 100
+  },
+  "trainer": {
+    "validation_metric": "+Accuracy",
+    "num_epochs": 200,
+    "patience": 20,
+    "cuda_device": 0,
+    "optimizer": {
+      "type": "adam",
+      "lr": 0.001,
+      "weight_decay": 0.001
+    }
+  },
+  "random_seed": 3894,
+  "numpy_seed": 4497,
+  "pytorch_seed": 5713
+}
