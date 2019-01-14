@@ -1,584 +1,396 @@
-2019-01-11 14:13:48,937 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.data.dataset_readers.dataset_reader.DatasetReader'> from params {'type': 'document_reader', 'use_stopless_tokens': True} and extras {}
-2019-01-11 14:13:48,937 - INFO - allennlp.common.params - dataset_reader.type = document_reader
-2019-01-11 14:13:48,938 - INFO - allennlp.common.from_params - instantiating class <class 'library.dataset_readers.document_reader.DocumentReader'> from params {'use_stopless_tokens': True} and extras {}
-2019-01-11 14:13:48,938 - INFO - allennlp.common.params - dataset_reader.lazy = False
-2019-01-11 14:13:48,938 - INFO - allennlp.common.params - dataset_reader.token_indexers = <allennlp.common.params.Params object at 0x7feb9e721278>
-2019-01-11 14:13:48,938 - INFO - allennlp.common.params - dataset_reader.use_stopless_tokens = True
-2019-01-11 14:13:49,172 - INFO - allennlp.common.params - validation_dataset_reader = None
-2019-01-11 14:13:49,172 - INFO - allennlp.common.params - train_data_path = /data/dangt7/IMDB/train_labelled.filtered.jsonl
-2019-01-11 14:13:49,172 - INFO - allennlp.commands.train - Reading training data from /data/dangt7/IMDB/train_labelled.filtered.jsonl
-2019-01-11 14:13:49,172 - INFO - library.dataset_readers.document_reader - Reading instances from lines in file: /data/dangt7/IMDB/train_labelled.filtered.jsonl
-2019-01-11 14:14:50,360 - INFO - allennlp.common.params - validation_data_path = /data/dangt7/IMDB/valid.filtered.jsonl
-2019-01-11 14:14:50,360 - INFO - allennlp.commands.train - Reading validation data from /data/dangt7/IMDB/valid.filtered.jsonl
-2019-01-11 14:14:50,360 - INFO - library.dataset_readers.document_reader - Reading instances from lines in file: /data/dangt7/IMDB/valid.filtered.jsonl
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - test_data_path = None
-2019-01-11 14:15:05,478 - INFO - allennlp.commands.train - From dataset instances, train, validation will be considered for vocabulary creation.
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.type = None
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.extend = False
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.directory_path = None
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.min_count = None
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.max_vocab_size = 2000
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.non_padded_namespaces = ('*tags', '*labels')
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.min_pretrained_embeddings = None
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.only_include_pretrained_words = False
-2019-01-11 14:15:05,478 - INFO - allennlp.common.params - vocabulary.tokens_to_add = None
-2019-01-11 14:15:05,478 - INFO - allennlp.data.vocabulary - Fitting token dictionary from dataset.
-2019-01-11 14:15:09,025 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.models.model.Model'> from params {'classification_layer': {'activations': ['linear'], 'hidden_dims': [2], 'input_dim': 300, 'num_layers': 1}, 'encoder': {'embedding_dim': 300, 'type': 'boe'}, 'text_field_embedder': {'tokens': {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'}}, 'type': 'seq2vec_classifier'} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7feb862c5fd0>}
-2019-01-11 14:15:09,025 - INFO - allennlp.common.params - model.type = seq2vec_classifier
-2019-01-11 14:15:09,025 - INFO - allennlp.common.from_params - instantiating class <class 'library.models.baselines.Seq2VecClassifier'> from params {'classification_layer': {'activations': ['linear'], 'hidden_dims': [2], 'input_dim': 300, 'num_layers': 1}, 'encoder': {'embedding_dim': 300, 'type': 'boe'}, 'text_field_embedder': {'tokens': {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'}}} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7feb862c5fd0>}
-2019-01-11 14:15:09,026 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.seq2vec_encoders.seq2vec_encoder.Seq2VecEncoder'> from params {'embedding_dim': 300, 'type': 'boe'} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7feb862c5fd0>}
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.encoder.type = boe
-2019-01-11 14:15:09,026 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.seq2vec_encoders.boe_encoder.BagOfEmbeddingsEncoder'> from params {'embedding_dim': 300} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7feb862c5fd0>}
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.encoder.embedding_dim = 300
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.encoder.averaged = False
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.classification_layer.input_dim = 300
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.classification_layer.num_layers = 1
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.classification_layer.hidden_dims = [2]
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.classification_layer.activations = ['linear']
-2019-01-11 14:15:09,026 - INFO - allennlp.common.params - model.classification_layer.dropout = 0.0
-2019-01-11 14:15:09,026 - INFO - allennlp.common.registrable - instantiating registered subclass linear of <class 'allennlp.nn.activations.Activation'>
-2019-01-11 14:15:09,027 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.text_field_embedders.text_field_embedder.TextFieldEmbedder'> from params {'tokens': {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'}} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7feb862c5fd0>}
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.type = basic
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.embedder_to_indexer_map = None
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.allow_unmatched_keys = False
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.token_embedders = None
-2019-01-11 14:15:09,027 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.token_embedders.token_embedder.TokenEmbedder'> from params {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7feb862c5fd0>}
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.tokens.type = embedding
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.tokens.num_embeddings = None
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.tokens.vocab_namespace = tokens
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.tokens.embedding_dim = 300
-2019-01-11 14:15:09,027 - INFO - allennlp.common.params - model.text_field_embedder.tokens.pretrained_file = /data/dangt7/glove/glove.6B.300d.txt
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.projection_dim = None
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.trainable = True
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.padding_index = None
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.max_norm = None
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.norm_type = 2.0
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.scale_grad_by_freq = False
-2019-01-11 14:15:09,028 - INFO - allennlp.common.params - model.text_field_embedder.tokens.sparse = False
-2019-01-11 14:15:09,028 - INFO - allennlp.modules.token_embedders.embedding - Reading pretrained embeddings from file
-2019-01-11 14:15:10,206 - INFO - allennlp.modules.token_embedders.embedding - Initializing pre-trained embedding layer
-2019-01-11 14:15:10,221 - INFO - allennlp.modules.token_embedders.embedding - Pretrained embeddings were found for 2000 out of 2002 tokens
-2019-01-11 14:15:10,221 - INFO - allennlp.nn.initializers - Initializing parameters
-2019-01-11 14:15:10,221 - INFO - allennlp.nn.initializers - Done initializing parameters; the following parameters are using their default initialization from their code
-2019-01-11 14:15:10,221 - INFO - allennlp.nn.initializers -    classification_layer._linear_layers.0.bias
-2019-01-11 14:15:10,222 - INFO - allennlp.nn.initializers -    classification_layer._linear_layers.0.weight
-2019-01-11 14:15:10,222 - INFO - allennlp.nn.initializers -    text_field_embedder.token_embedder_tokens.weight
-2019-01-11 14:15:10,225 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.data.iterators.data_iterator.DataIterator'> from params {'batch_size': 100, 'type': 'basic'} and extras {}
-2019-01-11 14:15:10,225 - INFO - allennlp.common.params - iterator.type = basic
-2019-01-11 14:15:10,226 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.data.iterators.basic_iterator.BasicIterator'> from params {'batch_size': 100} and extras {}
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - iterator.batch_size = 100
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - iterator.instances_per_epoch = None
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - iterator.max_instances_in_memory = None
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - iterator.cache_instances = False
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - iterator.track_epoch = False
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - iterator.maximum_samples_per_batch = None
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - validation_iterator = None
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - trainer.no_grad = ()
-2019-01-11 14:15:10,226 - INFO - allennlp.commands.train - Following parameters are Frozen  (without gradient):
-2019-01-11 14:15:10,226 - INFO - allennlp.commands.train - Following parameters are Tunable (with gradient):
-2019-01-11 14:15:10,226 - INFO - allennlp.commands.train - classification_layer._linear_layers.0.weight
-2019-01-11 14:15:10,226 - INFO - allennlp.commands.train - classification_layer._linear_layers.0.bias
-2019-01-11 14:15:10,226 - INFO - allennlp.commands.train - text_field_embedder.token_embedder_tokens.weight
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - trainer.patience = 20
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - trainer.validation_metric = +accuracy
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - trainer.shuffle = True
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - trainer.num_epochs = 200
-2019-01-11 14:15:10,226 - INFO - allennlp.common.params - trainer.cuda_device = 0
-2019-01-11 14:15:10,227 - INFO - allennlp.common.params - trainer.grad_norm = None
-2019-01-11 14:15:10,227 - INFO - allennlp.common.params - trainer.grad_clipping = None
-2019-01-11 14:15:10,227 - INFO - allennlp.common.params - trainer.learning_rate_scheduler = None
-2019-01-11 14:15:12,065 - INFO - allennlp.common.params - trainer.optimizer.type = adam
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.optimizer.parameter_groups = None
-2019-01-11 14:15:12,066 - INFO - allennlp.training.optimizers - Number of trainable parameters: 601202
-2019-01-11 14:15:12,066 - INFO - allennlp.common.registrable - instantiating registered subclass adam of <class 'allennlp.training.optimizers.Optimizer'>
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - Converting Params object to dict; logging of default values will not occur when dictionary parameters are used subsequently.
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - CURRENTLY DEFINED PARAMETERS: 
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.optimizer.lr = 0.001
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.optimizer.weight_decay = 0.001
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.num_serialized_models_to_keep = 20
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.keep_serialized_model_every_num_seconds = None
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.model_save_interval = None
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.summary_interval = 100
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.histogram_interval = None
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.should_log_parameter_statistics = True
-2019-01-11 14:15:12,066 - INFO - allennlp.common.params - trainer.should_log_learning_rate = False
-2019-01-11 14:15:12,068 - INFO - allennlp.common.params - evaluate_on_test = False
-2019-01-11 14:15:12,068 - INFO - allennlp.training.trainer - Beginning training.
-2019-01-11 14:15:12,068 - INFO - allennlp.training.trainer - Epoch 0/199
-2019-01-11 14:15:12,068 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 2998.612
-2019-01-11 14:15:12,174 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:15:12,174 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 537
-2019-01-11 14:15:12,174 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:15:23,404 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:15:24,725 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:15:24,726 - INFO - allennlp.training.trainer - loss     |     0.694  |     0.365
-2019-01-11 14:15:24,726 - INFO - allennlp.training.trainer - accuracy |     0.761  |     0.854
-2019-01-11 14:15:24,764 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
-2019-01-11 14:15:24,766 - INFO - allennlp.training.trainer - Epoch duration: 00:00:12
-2019-01-11 14:15:24,766 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:42:06
-2019-01-11 14:15:24,766 - INFO - allennlp.training.trainer - Epoch 1/199
-2019-01-11 14:15:24,766 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:15:24,869 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:15:24,870 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:15:24,870 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:15:32,477 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:15:33,023 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:15:33,024 - INFO - allennlp.training.trainer - loss     |     0.370  |     0.394
-2019-01-11 14:15:33,024 - INFO - allennlp.training.trainer - accuracy |     0.851  |     0.840
-2019-01-11 14:15:33,028 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:15:33,028 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:34:35
-2019-01-11 14:15:33,028 - INFO - allennlp.training.trainer - Epoch 2/199
-2019-01-11 14:15:33,028 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:15:33,132 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:15:33,133 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:15:33,133 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:15:40,762 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:15:41,309 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:15:41,310 - INFO - allennlp.training.trainer - loss     |     0.342  |     0.373
-2019-01-11 14:15:41,310 - INFO - allennlp.training.trainer - accuracy |     0.861  |     0.846
-2019-01-11 14:15:41,314 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:15:41,314 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:32:00
-2019-01-11 14:15:41,314 - INFO - allennlp.training.trainer - Epoch 3/199
-2019-01-11 14:15:41,314 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:15:41,417 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:15:41,418 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:15:41,418 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:15:49,077 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:15:49,625 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:15:49,625 - INFO - allennlp.training.trainer - loss     |     0.347  |     0.336
-2019-01-11 14:15:49,626 - INFO - allennlp.training.trainer - accuracy |     0.862  |     0.862
-2019-01-11 14:15:49,630 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
-2019-01-11 14:15:49,632 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:15:49,632 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:30:40
-2019-01-11 14:15:49,632 - INFO - allennlp.training.trainer - Epoch 4/199
-2019-01-11 14:15:49,632 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:15:49,735 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:15:49,735 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:15:49,736 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:15:57,443 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:15:57,991 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:15:57,992 - INFO - allennlp.training.trainer - loss     |     0.330  |     0.338
-2019-01-11 14:15:57,992 - INFO - allennlp.training.trainer - accuracy |     0.867  |     0.862
-2019-01-11 14:15:57,996 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
-2019-01-11 14:15:57,998 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:15:57,998 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:29:51
-2019-01-11 14:15:57,998 - INFO - allennlp.training.trainer - Epoch 5/199
-2019-01-11 14:15:57,998 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:15:58,102 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:15:58,102 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:15:58,103 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:05,722 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:06,271 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:06,272 - INFO - allennlp.training.trainer - loss     |     0.334  |     0.366
-2019-01-11 14:16:06,272 - INFO - allennlp.training.trainer - accuracy |     0.864  |     0.852
-2019-01-11 14:16:06,276 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:06,276 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:29:12
-2019-01-11 14:16:06,276 - INFO - allennlp.training.trainer - Epoch 6/199
-2019-01-11 14:16:06,276 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:06,381 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:06,381 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:06,382 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:13,912 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:14,460 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:14,460 - INFO - allennlp.training.trainer - loss     |     0.330  |     0.363
-2019-01-11 14:16:14,460 - INFO - allennlp.training.trainer - accuracy |     0.868  |     0.855
-2019-01-11 14:16:14,465 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:14,465 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:28:40
-2019-01-11 14:16:14,465 - INFO - allennlp.training.trainer - Epoch 7/199
-2019-01-11 14:16:14,465 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:14,569 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:14,569 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:14,569 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:22,170 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:22,717 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:22,718 - INFO - allennlp.training.trainer - loss     |     0.336  |     0.352
-2019-01-11 14:16:22,718 - INFO - allennlp.training.trainer - accuracy |     0.866  |     0.863
-2019-01-11 14:16:22,722 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
-2019-01-11 14:16:22,724 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:22,724 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:28:15
-2019-01-11 14:16:22,724 - INFO - allennlp.training.trainer - Epoch 8/199
-2019-01-11 14:16:22,724 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:22,827 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:22,828 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:22,828 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:30,421 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:30,968 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:30,969 - INFO - allennlp.training.trainer - loss     |     0.352  |     0.443
-2019-01-11 14:16:30,969 - INFO - allennlp.training.trainer - accuracy |     0.862  |     0.833
-2019-01-11 14:16:30,974 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:30,974 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:54
-2019-01-11 14:16:30,974 - INFO - allennlp.training.trainer - Epoch 9/199
-2019-01-11 14:16:30,974 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:31,077 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:31,077 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:31,077 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:38,697 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:39,244 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:39,244 - INFO - allennlp.training.trainer - loss     |     0.324  |     0.439
-2019-01-11 14:16:39,244 - INFO - allennlp.training.trainer - accuracy |     0.871  |     0.830
-2019-01-11 14:16:39,249 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:39,249 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:36
-2019-01-11 14:16:39,249 - INFO - allennlp.training.trainer - Epoch 10/199
-2019-01-11 14:16:39,249 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:39,353 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:39,353 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:39,353 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:46,966 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:47,512 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:47,513 - INFO - allennlp.training.trainer - loss     |     0.341  |     0.358
-2019-01-11 14:16:47,513 - INFO - allennlp.training.trainer - accuracy |     0.864  |     0.854
-2019-01-11 14:16:47,518 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:47,518 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:20
-2019-01-11 14:16:47,518 - INFO - allennlp.training.trainer - Epoch 11/199
-2019-01-11 14:16:47,518 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:47,616 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:47,616 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:47,616 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:16:55,139 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:16:55,685 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:16:55,686 - INFO - allennlp.training.trainer - loss     |     0.344  |     0.467
-2019-01-11 14:16:55,686 - INFO - allennlp.training.trainer - accuracy |     0.866  |     0.827
-2019-01-11 14:16:55,690 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:16:55,690 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:03
-2019-01-11 14:16:55,691 - INFO - allennlp.training.trainer - Epoch 12/199
-2019-01-11 14:16:55,691 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:16:55,794 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:16:55,794 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:16:55,795 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:03,474 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:04,023 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:04,024 - INFO - allennlp.training.trainer - loss     |     0.326  |     0.380
-2019-01-11 14:17:04,024 - INFO - allennlp.training.trainer - accuracy |     0.870  |     0.849
-2019-01-11 14:17:04,029 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:04,029 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:50
-2019-01-11 14:17:04,029 - INFO - allennlp.training.trainer - Epoch 13/199
-2019-01-11 14:17:04,029 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:04,132 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:04,132 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:04,133 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:11,800 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:12,347 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:12,347 - INFO - allennlp.training.trainer - loss     |     0.326  |     0.362
-2019-01-11 14:17:12,348 - INFO - allennlp.training.trainer - accuracy |     0.871  |     0.854
-2019-01-11 14:17:12,352 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:12,352 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:38
-2019-01-11 14:17:12,352 - INFO - allennlp.training.trainer - Epoch 14/199
-2019-01-11 14:17:12,352 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:12,453 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:12,453 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:12,454 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:20,099 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:20,645 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:20,646 - INFO - allennlp.training.trainer - loss     |     0.339  |     0.369
-2019-01-11 14:17:20,647 - INFO - allennlp.training.trainer - accuracy |     0.867  |     0.859
-2019-01-11 14:17:20,651 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:20,651 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:25
-2019-01-11 14:17:20,651 - INFO - allennlp.training.trainer - Epoch 15/199
-2019-01-11 14:17:20,651 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:20,753 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:20,754 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:20,754 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:28,451 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:29,000 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:29,001 - INFO - allennlp.training.trainer - loss     |     0.332  |     0.372
-2019-01-11 14:17:29,002 - INFO - allennlp.training.trainer - accuracy |     0.869  |     0.857
-2019-01-11 14:17:29,006 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:29,006 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:14
-2019-01-11 14:17:29,006 - INFO - allennlp.training.trainer - Epoch 16/199
-2019-01-11 14:17:29,006 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:29,108 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:29,108 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:29,108 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:36,749 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:37,297 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:37,298 - INFO - allennlp.training.trainer - loss     |     0.310  |     0.336
-2019-01-11 14:17:37,298 - INFO - allennlp.training.trainer - accuracy |     0.876  |     0.861
-2019-01-11 14:17:37,302 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:37,303 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:03
-2019-01-11 14:17:37,303 - INFO - allennlp.training.trainer - Epoch 17/199
-2019-01-11 14:17:37,303 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:37,405 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:37,406 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:37,406 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:45,013 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:45,561 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:45,562 - INFO - allennlp.training.trainer - loss     |     0.336  |     0.402
-2019-01-11 14:17:45,562 - INFO - allennlp.training.trainer - accuracy |     0.869  |     0.845
-2019-01-11 14:17:45,566 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:45,566 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:52
-2019-01-11 14:17:45,567 - INFO - allennlp.training.trainer - Epoch 18/199
-2019-01-11 14:17:45,567 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:45,669 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:45,669 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:45,669 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:17:53,339 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:17:53,884 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:17:53,885 - INFO - allennlp.training.trainer - loss     |     0.353  |     0.422
-2019-01-11 14:17:53,885 - INFO - allennlp.training.trainer - accuracy |     0.863  |     0.845
-2019-01-11 14:17:53,889 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:17:53,890 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:41
-2019-01-11 14:17:53,890 - INFO - allennlp.training.trainer - Epoch 19/199
-2019-01-11 14:17:53,890 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:17:53,988 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:17:53,988 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:17:53,988 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:01,624 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:02,169 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:02,170 - INFO - allennlp.training.trainer - loss     |     0.327  |     0.369
-2019-01-11 14:18:02,170 - INFO - allennlp.training.trainer - accuracy |     0.873  |     0.858
-2019-01-11 14:18:02,175 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:02,175 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:30
-2019-01-11 14:18:02,175 - INFO - allennlp.training.trainer - Epoch 20/199
-2019-01-11 14:18:02,175 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:02,273 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:02,274 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:02,274 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:09,919 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:10,472 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:10,472 - INFO - allennlp.training.trainer - loss     |     0.335  |     0.403
-2019-01-11 14:18:10,472 - INFO - allennlp.training.trainer - accuracy |     0.871  |     0.849
-2019-01-11 14:18:10,477 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:10,478 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:20
-2019-01-11 14:18:10,478 - INFO - allennlp.training.trainer - Epoch 21/199
-2019-01-11 14:18:10,478 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:10,576 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:10,577 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:10,577 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:18,206 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:18,756 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:18,757 - INFO - allennlp.training.trainer - loss     |     0.313  |     0.345
-2019-01-11 14:18:18,757 - INFO - allennlp.training.trainer - accuracy |     0.875  |     0.866
-2019-01-11 14:18:18,761 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
-2019-01-11 14:18:18,764 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:18,764 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:10
-2019-01-11 14:18:18,764 - INFO - allennlp.training.trainer - Epoch 22/199
-2019-01-11 14:18:18,764 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:18,866 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:18,867 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:18,867 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:26,483 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:27,029 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:27,030 - INFO - allennlp.training.trainer - loss     |     0.289  |     0.409
-2019-01-11 14:18:27,030 - INFO - allennlp.training.trainer - accuracy |     0.884  |     0.841
-2019-01-11 14:18:27,035 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:27,035 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:00
-2019-01-11 14:18:27,035 - INFO - allennlp.training.trainer - Epoch 23/199
-2019-01-11 14:18:27,035 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:27,137 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:27,137 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:27,138 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:34,824 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:35,370 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:35,370 - INFO - allennlp.training.trainer - loss     |     0.306  |     0.371
-2019-01-11 14:18:35,371 - INFO - allennlp.training.trainer - accuracy |     0.877  |     0.858
-2019-01-11 14:18:35,376 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:35,376 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:50
-2019-01-11 14:18:35,376 - INFO - allennlp.training.trainer - Epoch 24/199
-2019-01-11 14:18:35,376 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:35,473 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:35,473 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:35,473 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:43,076 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:43,621 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:43,622 - INFO - allennlp.training.trainer - loss     |     0.302  |     0.355
-2019-01-11 14:18:43,623 - INFO - allennlp.training.trainer - accuracy |     0.878  |     0.861
-2019-01-11 14:18:43,628 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:43,628 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:40
-2019-01-11 14:18:43,628 - INFO - allennlp.training.trainer - Epoch 25/199
-2019-01-11 14:18:43,628 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:43,728 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:43,728 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:43,729 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:51,319 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:18:51,865 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:18:51,866 - INFO - allennlp.training.trainer - loss     |     0.306  |     0.371
-2019-01-11 14:18:51,866 - INFO - allennlp.training.trainer - accuracy |     0.878  |     0.860
-2019-01-11 14:18:51,871 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:18:51,871 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:30
-2019-01-11 14:18:51,871 - INFO - allennlp.training.trainer - Epoch 26/199
-2019-01-11 14:18:51,871 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:18:51,974 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:18:51,974 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:18:51,974 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:18:59,557 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:00,106 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:00,106 - INFO - allennlp.training.trainer - loss     |     0.321  |     0.350
-2019-01-11 14:19:00,106 - INFO - allennlp.training.trainer - accuracy |     0.875  |     0.864
-2019-01-11 14:19:00,112 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:00,112 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:21
-2019-01-11 14:19:00,112 - INFO - allennlp.training.trainer - Epoch 27/199
-2019-01-11 14:19:00,112 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:00,213 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:00,213 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:00,213 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:07,843 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:08,393 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:08,393 - INFO - allennlp.training.trainer - loss     |     0.304  |     0.401
-2019-01-11 14:19:08,394 - INFO - allennlp.training.trainer - accuracy |     0.879  |     0.847
-2019-01-11 14:19:08,399 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:08,399 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:11
-2019-01-11 14:19:08,399 - INFO - allennlp.training.trainer - Epoch 28/199
-2019-01-11 14:19:08,399 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:08,501 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:08,501 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:08,502 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:16,112 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:16,665 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:16,665 - INFO - allennlp.training.trainer - loss     |     0.293  |     0.369
-2019-01-11 14:19:16,665 - INFO - allennlp.training.trainer - accuracy |     0.884  |     0.856
-2019-01-11 14:19:16,671 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:16,671 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:02
-2019-01-11 14:19:16,671 - INFO - allennlp.training.trainer - Epoch 29/199
-2019-01-11 14:19:16,671 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:16,773 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:16,773 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:16,773 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:24,373 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:24,922 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:24,922 - INFO - allennlp.training.trainer - loss     |     0.305  |     0.345
-2019-01-11 14:19:24,922 - INFO - allennlp.training.trainer - accuracy |     0.878  |     0.861
-2019-01-11 14:19:24,928 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:24,928 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:23:52
-2019-01-11 14:19:24,928 - INFO - allennlp.training.trainer - Epoch 30/199
-2019-01-11 14:19:24,928 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:25,029 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:25,029 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:25,029 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:32,695 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:33,242 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:33,243 - INFO - allennlp.training.trainer - loss     |     0.284  |     0.356
-2019-01-11 14:19:33,243 - INFO - allennlp.training.trainer - accuracy |     0.887  |     0.860
-2019-01-11 14:19:33,248 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:33,248 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:23:43
-2019-01-11 14:19:33,248 - INFO - allennlp.training.trainer - Epoch 31/199
-2019-01-11 14:19:33,248 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:33,350 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:33,350 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:33,351 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:40,957 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:41,507 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:41,507 - INFO - allennlp.training.trainer - loss     |     0.291  |     0.352
-2019-01-11 14:19:41,508 - INFO - allennlp.training.trainer - accuracy |     0.882  |     0.865
-2019-01-11 14:19:41,513 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:41,513 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:23:34
-2019-01-11 14:19:41,513 - INFO - allennlp.training.trainer - Epoch 32/199
-2019-01-11 14:19:41,513 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:41,610 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:41,610 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:41,611 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:49,281 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:49,829 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:49,830 - INFO - allennlp.training.trainer - loss     |     0.304  |     0.412
-2019-01-11 14:19:49,830 - INFO - allennlp.training.trainer - accuracy |     0.881  |     0.847
-2019-01-11 14:19:49,835 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:49,835 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:23:25
-2019-01-11 14:19:49,835 - INFO - allennlp.training.trainer - Epoch 33/199
-2019-01-11 14:19:49,835 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:49,931 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:49,931 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:49,932 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:19:57,676 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:19:58,226 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:19:58,227 - INFO - allennlp.training.trainer - loss     |     0.285  |     0.400
-2019-01-11 14:19:58,227 - INFO - allennlp.training.trainer - accuracy |     0.886  |     0.848
-2019-01-11 14:19:58,232 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:19:58,233 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:23:17
-2019-01-11 14:19:58,233 - INFO - allennlp.training.trainer - Epoch 34/199
-2019-01-11 14:19:58,233 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:19:58,324 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:19:58,324 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:19:58,325 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:05,911 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:06,461 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:06,462 - INFO - allennlp.training.trainer - loss     |     0.304  |     0.359
-2019-01-11 14:20:06,462 - INFO - allennlp.training.trainer - accuracy |     0.879  |     0.860
-2019-01-11 14:20:06,467 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:06,467 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:23:07
-2019-01-11 14:20:06,467 - INFO - allennlp.training.trainer - Epoch 35/199
-2019-01-11 14:20:06,468 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:06,568 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:06,568 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:06,568 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:14,096 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:14,642 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:14,643 - INFO - allennlp.training.trainer - loss     |     0.276  |     0.355
-2019-01-11 14:20:14,644 - INFO - allennlp.training.trainer - accuracy |     0.888  |     0.861
-2019-01-11 14:20:14,649 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:14,649 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:22:58
-2019-01-11 14:20:14,649 - INFO - allennlp.training.trainer - Epoch 36/199
-2019-01-11 14:20:14,649 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:14,749 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:14,750 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:14,750 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:22,313 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:22,863 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:22,863 - INFO - allennlp.training.trainer - loss     |     0.287  |     0.389
-2019-01-11 14:20:22,863 - INFO - allennlp.training.trainer - accuracy |     0.885  |     0.854
-2019-01-11 14:20:22,869 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:22,869 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:22:49
-2019-01-11 14:20:22,869 - INFO - allennlp.training.trainer - Epoch 37/199
-2019-01-11 14:20:22,869 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:22,970 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:22,970 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:22,970 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:30,541 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:31,088 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:31,089 - INFO - allennlp.training.trainer - loss     |     0.304  |     0.354
-2019-01-11 14:20:31,089 - INFO - allennlp.training.trainer - accuracy |     0.879  |     0.863
-2019-01-11 14:20:31,094 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:31,094 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:22:40
-2019-01-11 14:20:31,095 - INFO - allennlp.training.trainer - Epoch 38/199
-2019-01-11 14:20:31,095 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:31,195 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:31,195 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:31,196 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:38,830 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:39,378 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:39,379 - INFO - allennlp.training.trainer - loss     |     0.293  |     0.354
-2019-01-11 14:20:39,379 - INFO - allennlp.training.trainer - accuracy |     0.885  |     0.865
-2019-01-11 14:20:39,384 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:39,384 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:22:31
-2019-01-11 14:20:39,384 - INFO - allennlp.training.trainer - Epoch 39/199
-2019-01-11 14:20:39,384 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:39,485 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:39,485 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:39,485 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:47,088 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:47,638 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:47,639 - INFO - allennlp.training.trainer - loss     |     0.271  |     0.354
-2019-01-11 14:20:47,639 - INFO - allennlp.training.trainer - accuracy |     0.892  |     0.863
-2019-01-11 14:20:47,644 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:47,644 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:22:22
-2019-01-11 14:20:47,644 - INFO - allennlp.training.trainer - Epoch 40/199
-2019-01-11 14:20:47,645 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:47,740 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:47,740 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:47,740 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:20:55,333 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:20:55,880 - INFO - allennlp.training.trainer -              Training |  Validation
-2019-01-11 14:20:55,881 - INFO - allennlp.training.trainer - loss     |     0.292  |     0.366
-2019-01-11 14:20:55,881 - INFO - allennlp.training.trainer - accuracy |     0.885  |     0.863
-2019-01-11 14:20:55,886 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
-2019-01-11 14:20:55,887 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:22:13
-2019-01-11 14:20:55,887 - INFO - allennlp.training.trainer - Epoch 41/199
-2019-01-11 14:20:55,887 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3118.376
-2019-01-11 14:20:55,986 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
-2019-01-11 14:20:55,987 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1785
-2019-01-11 14:20:55,987 - INFO - allennlp.training.trainer - Training
-2019-01-11 14:21:03,526 - INFO - allennlp.training.trainer - Validating
-2019-01-11 14:21:04,074 - INFO - allennlp.training.trainer - Ran out of patience.  Stopping training.
-2019-01-11 14:21:04,074 - INFO - allennlp.models.archival - archiving weights and vocabulary to experiments/supervised/boe_trials/results/boe5/model.tar.gz
-2019-01-11 14:21:04,159 - INFO - allennlp.commands.train - Loading the best epoch weights.
-2019-01-11 14:21:04,161 - INFO - allennlp.common.util - Metrics: {
-  "training_duration": "00:05:43",
+2019-01-13 15:03:52,992 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.data.dataset_readers.dataset_reader.DatasetReader'> from params {'type': 'document_reader'} and extras {}
+2019-01-13 15:03:52,992 - INFO - allennlp.common.params - dataset_reader.type = document_reader
+2019-01-13 15:03:52,992 - INFO - allennlp.common.from_params - instantiating class <class 'library.dataset_readers.document_reader.DocumentReader'> from params {} and extras {}
+2019-01-13 15:03:52,992 - INFO - allennlp.common.params - dataset_reader.lazy = False
+2019-01-13 15:03:52,992 - INFO - allennlp.common.params - dataset_reader.token_indexers = <allennlp.common.params.Params object at 0x7f2f290ee860>
+2019-01-13 15:03:52,992 - INFO - allennlp.common.params - dataset_reader.use_stopless_tokens = True
+2019-01-13 15:03:53,220 - INFO - allennlp.common.params - validation_dataset_reader = None
+2019-01-13 15:03:53,220 - INFO - allennlp.common.params - train_data_path = /data/dangt7/IMDB/train_labelled.filtered.jsonl
+2019-01-13 15:03:53,220 - INFO - allennlp.commands.train - Reading training data from /data/dangt7/IMDB/train_labelled.filtered.jsonl
+2019-01-13 15:03:53,220 - INFO - library.dataset_readers.document_reader - Reading instances from lines in file: /data/dangt7/IMDB/train_labelled.filtered.jsonl
+2019-01-13 15:04:55,525 - INFO - allennlp.common.params - validation_data_path = /data/dangt7/IMDB/valid.filtered.jsonl
+2019-01-13 15:04:55,525 - INFO - allennlp.commands.train - Reading validation data from /data/dangt7/IMDB/valid.filtered.jsonl
+2019-01-13 15:04:55,526 - INFO - library.dataset_readers.document_reader - Reading instances from lines in file: /data/dangt7/IMDB/valid.filtered.jsonl
+2019-01-13 15:05:10,958 - INFO - allennlp.common.params - test_data_path = None
+2019-01-13 15:05:10,958 - INFO - allennlp.commands.train - From dataset instances, train, validation will be considered for vocabulary creation.
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.type = None
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.extend = False
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.directory_path = None
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.min_count = None
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.max_vocab_size = 2000
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.non_padded_namespaces = ('*tags', '*labels')
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.min_pretrained_embeddings = None
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.only_include_pretrained_words = False
+2019-01-13 15:05:10,959 - INFO - allennlp.common.params - vocabulary.tokens_to_add = None
+2019-01-13 15:05:10,959 - INFO - allennlp.data.vocabulary - Fitting token dictionary from dataset.
+2019-01-13 15:05:14,659 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.models.model.Model'> from params {'classification_layer': {'activations': ['linear'], 'hidden_dims': [2], 'input_dim': 300, 'num_layers': 1}, 'encoder': {'embedding_dim': 300, 'type': 'boe'}, 'text_field_embedder': {'tokens': {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'}}, 'type': 'seq2vec_classifier'} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7f2f290ee860>}
+2019-01-13 15:05:14,659 - INFO - allennlp.common.params - model.type = seq2vec_classifier
+2019-01-13 15:05:14,659 - INFO - allennlp.common.from_params - instantiating class <class 'library.models.baselines.Seq2VecClassifier'> from params {'classification_layer': {'activations': ['linear'], 'hidden_dims': [2], 'input_dim': 300, 'num_layers': 1}, 'encoder': {'embedding_dim': 300, 'type': 'boe'}, 'text_field_embedder': {'tokens': {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'}}} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7f2f290ee860>}
+2019-01-13 15:05:14,659 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.seq2vec_encoders.seq2vec_encoder.Seq2VecEncoder'> from params {'embedding_dim': 300, 'type': 'boe'} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7f2f290ee860>}
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.encoder.type = boe
+2019-01-13 15:05:14,660 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.seq2vec_encoders.boe_encoder.BagOfEmbeddingsEncoder'> from params {'embedding_dim': 300} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7f2f290ee860>}
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.encoder.embedding_dim = 300
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.encoder.averaged = False
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.classification_layer.input_dim = 300
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.classification_layer.num_layers = 1
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.classification_layer.hidden_dims = [2]
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.classification_layer.activations = ['linear']
+2019-01-13 15:05:14,660 - INFO - allennlp.common.params - model.classification_layer.dropout = 0.0
+2019-01-13 15:05:14,660 - INFO - allennlp.common.registrable - instantiating registered subclass linear of <class 'allennlp.nn.activations.Activation'>
+2019-01-13 15:05:14,661 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.text_field_embedders.text_field_embedder.TextFieldEmbedder'> from params {'tokens': {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'}} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7f2f290ee860>}
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.type = basic
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.embedder_to_indexer_map = None
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.allow_unmatched_keys = False
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.token_embedders = None
+2019-01-13 15:05:14,661 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.modules.token_embedders.token_embedder.TokenEmbedder'> from params {'embedding_dim': 300, 'pretrained_file': '/data/dangt7/glove/glove.6B.300d.txt', 'trainable': True, 'type': 'embedding', 'vocab_namespace': 'tokens'} and extras {'vocab': <allennlp.data.vocabulary.Vocabulary object at 0x7f2f290ee860>}
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.tokens.type = embedding
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.tokens.num_embeddings = None
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.tokens.vocab_namespace = tokens
+2019-01-13 15:05:14,661 - INFO - allennlp.common.params - model.text_field_embedder.tokens.embedding_dim = 300
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.pretrained_file = /data/dangt7/glove/glove.6B.300d.txt
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.projection_dim = None
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.trainable = True
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.padding_index = None
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.max_norm = None
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.norm_type = 2.0
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.scale_grad_by_freq = False
+2019-01-13 15:05:14,662 - INFO - allennlp.common.params - model.text_field_embedder.tokens.sparse = False
+2019-01-13 15:05:14,662 - INFO - allennlp.modules.token_embedders.embedding - Reading pretrained embeddings from file
+2019-01-13 15:05:15,880 - INFO - allennlp.modules.token_embedders.embedding - Initializing pre-trained embedding layer
+2019-01-13 15:05:15,895 - INFO - allennlp.modules.token_embedders.embedding - Pretrained embeddings were found for 2000 out of 2002 tokens
+2019-01-13 15:05:15,896 - INFO - allennlp.nn.initializers - Initializing parameters
+2019-01-13 15:05:15,896 - INFO - allennlp.nn.initializers - Done initializing parameters; the following parameters are using their default initialization from their code
+2019-01-13 15:05:15,896 - INFO - allennlp.nn.initializers -    classification_layer._linear_layers.0.bias
+2019-01-13 15:05:15,896 - INFO - allennlp.nn.initializers -    classification_layer._linear_layers.0.weight
+2019-01-13 15:05:15,896 - INFO - allennlp.nn.initializers -    text_field_embedder.token_embedder_tokens.weight
+2019-01-13 15:05:15,900 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.data.iterators.data_iterator.DataIterator'> from params {'batch_size': 100, 'type': 'basic'} and extras {}
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.type = basic
+2019-01-13 15:05:15,900 - INFO - allennlp.common.from_params - instantiating class <class 'allennlp.data.iterators.basic_iterator.BasicIterator'> from params {'batch_size': 100} and extras {}
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.batch_size = 100
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.instances_per_epoch = None
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.max_instances_in_memory = None
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.cache_instances = False
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.track_epoch = False
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - iterator.maximum_samples_per_batch = None
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - validation_iterator = None
+2019-01-13 15:05:15,900 - INFO - allennlp.common.params - trainer.no_grad = ()
+2019-01-13 15:05:15,901 - INFO - allennlp.commands.train - Following parameters are Frozen  (without gradient):
+2019-01-13 15:05:15,901 - INFO - allennlp.commands.train - Following parameters are Tunable (with gradient):
+2019-01-13 15:05:15,901 - INFO - allennlp.commands.train - classification_layer._linear_layers.0.weight
+2019-01-13 15:05:15,901 - INFO - allennlp.commands.train - classification_layer._linear_layers.0.bias
+2019-01-13 15:05:15,901 - INFO - allennlp.commands.train - text_field_embedder.token_embedder_tokens.weight
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.patience = 20
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.validation_metric = +accuracy
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.shuffle = True
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.num_epochs = 200
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.cuda_device = 0
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.grad_norm = None
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.grad_clipping = None
+2019-01-13 15:05:15,901 - INFO - allennlp.common.params - trainer.learning_rate_scheduler = None
+2019-01-13 15:05:17,708 - INFO - allennlp.common.params - trainer.optimizer.type = adam
+2019-01-13 15:05:17,708 - INFO - allennlp.common.params - trainer.optimizer.parameter_groups = None
+2019-01-13 15:05:17,708 - INFO - allennlp.training.optimizers - Number of trainable parameters: 601202
+2019-01-13 15:05:17,708 - INFO - allennlp.common.registrable - instantiating registered subclass adam of <class 'allennlp.training.optimizers.Optimizer'>
+2019-01-13 15:05:17,708 - INFO - allennlp.common.params - Converting Params object to dict; logging of default values will not occur when dictionary parameters are used subsequently.
+2019-01-13 15:05:17,708 - INFO - allennlp.common.params - CURRENTLY DEFINED PARAMETERS: 
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.optimizer.lr = 0.001
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.optimizer.weight_decay = 0.001
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.num_serialized_models_to_keep = 20
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.keep_serialized_model_every_num_seconds = None
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.model_save_interval = None
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.summary_interval = 100
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.histogram_interval = None
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.should_log_parameter_statistics = True
+2019-01-13 15:05:17,709 - INFO - allennlp.common.params - trainer.should_log_learning_rate = False
+2019-01-13 15:05:17,710 - INFO - allennlp.common.params - evaluate_on_test = False
+2019-01-13 15:05:17,710 - INFO - allennlp.training.trainer - Beginning training.
+2019-01-13 15:05:17,711 - INFO - allennlp.training.trainer - Epoch 0/199
+2019-01-13 15:05:17,711 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 2994.392
+2019-01-13 15:05:17,798 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:05:17,798 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 537
+2019-01-13 15:05:17,798 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:05:29,388 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:05:30,766 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:05:30,767 - INFO - allennlp.training.trainer - loss     |     0.792  |     0.375
+2019-01-13 15:05:30,767 - INFO - allennlp.training.trainer - accuracy |     0.754  |     0.842
+2019-01-13 15:05:30,805 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
+2019-01-13 15:05:30,806 - INFO - allennlp.training.trainer - Epoch duration: 00:00:13
+2019-01-13 15:05:30,806 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:43:26
+2019-01-13 15:05:30,806 - INFO - allennlp.training.trainer - Epoch 1/199
+2019-01-13 15:05:30,806 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:05:30,900 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:05:30,901 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:05:30,901 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:05:38,535 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:05:39,081 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:05:39,081 - INFO - allennlp.training.trainer - loss     |     0.356  |     0.342
+2019-01-13 15:05:39,081 - INFO - allennlp.training.trainer - accuracy |     0.854  |     0.860
+2019-01-13 15:05:39,086 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
+2019-01-13 15:05:39,088 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:05:39,088 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:35:16
+2019-01-13 15:05:39,088 - INFO - allennlp.training.trainer - Epoch 2/199
+2019-01-13 15:05:39,088 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:05:39,181 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:05:39,182 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:05:39,182 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:05:46,754 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:05:47,300 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:05:47,300 - INFO - allennlp.training.trainer - loss     |     0.340  |     0.368
+2019-01-13 15:05:47,301 - INFO - allennlp.training.trainer - accuracy |     0.863  |     0.850
+2019-01-13 15:05:47,305 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:05:47,305 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:32:23
+2019-01-13 15:05:47,305 - INFO - allennlp.training.trainer - Epoch 3/199
+2019-01-13 15:05:47,305 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:05:47,397 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:05:47,397 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:05:47,397 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:05:55,105 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:05:55,653 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:05:55,654 - INFO - allennlp.training.trainer - loss     |     0.348  |     0.334
+2019-01-13 15:05:55,654 - INFO - allennlp.training.trainer - accuracy |     0.864  |     0.861
+2019-01-13 15:05:55,658 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
+2019-01-13 15:05:55,660 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:05:55,660 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:30:59
+2019-01-13 15:05:55,660 - INFO - allennlp.training.trainer - Epoch 4/199
+2019-01-13 15:05:55,660 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:05:55,754 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:05:55,754 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:05:55,754 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:03,333 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:03,878 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:03,879 - INFO - allennlp.training.trainer - loss     |     0.341  |     0.329
+2019-01-13 15:06:03,879 - INFO - allennlp.training.trainer - accuracy |     0.864  |     0.870
+2019-01-13 15:06:03,883 - INFO - allennlp.training.trainer - Best validation performance so far. Copying weights to 'experiments/supervised/boe_trials/results/boe5/best.th'.
+2019-01-13 15:06:03,885 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:03,885 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:30:00
+2019-01-13 15:06:03,885 - INFO - allennlp.training.trainer - Epoch 5/199
+2019-01-13 15:06:03,885 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:03,979 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:03,980 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:03,980 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:11,655 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:12,200 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:12,201 - INFO - allennlp.training.trainer - loss     |     0.347  |     0.341
+2019-01-13 15:06:12,201 - INFO - allennlp.training.trainer - accuracy |     0.862  |     0.861
+2019-01-13 15:06:12,205 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:12,205 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:29:21
+2019-01-13 15:06:12,205 - INFO - allennlp.training.trainer - Epoch 6/199
+2019-01-13 15:06:12,205 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:12,299 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:12,300 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:12,300 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:19,899 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:20,443 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:20,444 - INFO - allennlp.training.trainer - loss     |     0.361  |     0.341
+2019-01-13 15:06:20,444 - INFO - allennlp.training.trainer - accuracy |     0.860  |     0.865
+2019-01-13 15:06:20,448 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:20,448 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:28:49
+2019-01-13 15:06:20,448 - INFO - allennlp.training.trainer - Epoch 7/199
+2019-01-13 15:06:20,448 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:20,543 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:20,543 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:20,543 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:28,144 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:28,689 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:28,690 - INFO - allennlp.training.trainer - loss     |     0.335  |     0.509
+2019-01-13 15:06:28,690 - INFO - allennlp.training.trainer - accuracy |     0.864  |     0.819
+2019-01-13 15:06:28,694 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:28,694 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:28:23
+2019-01-13 15:06:28,694 - INFO - allennlp.training.trainer - Epoch 8/199
+2019-01-13 15:06:28,695 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:28,786 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:28,786 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:28,786 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:36,474 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:37,020 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:37,021 - INFO - allennlp.training.trainer - loss     |     0.321  |     0.329
+2019-01-13 15:06:37,021 - INFO - allennlp.training.trainer - accuracy |     0.870  |     0.868
+2019-01-13 15:06:37,025 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:37,025 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:28:03
+2019-01-13 15:06:37,025 - INFO - allennlp.training.trainer - Epoch 9/199
+2019-01-13 15:06:37,025 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:37,117 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:37,117 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:37,118 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:44,657 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:45,205 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:45,206 - INFO - allennlp.training.trainer - loss     |     0.331  |     0.330
+2019-01-13 15:06:45,207 - INFO - allennlp.training.trainer - accuracy |     0.866  |     0.866
+2019-01-13 15:06:45,211 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:45,211 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:42
+2019-01-13 15:06:45,211 - INFO - allennlp.training.trainer - Epoch 10/199
+2019-01-13 15:06:45,211 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:45,304 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:45,305 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:45,305 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:06:53,010 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:06:53,557 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:06:53,558 - INFO - allennlp.training.trainer - loss     |     0.335  |     0.343
+2019-01-13 15:06:53,558 - INFO - allennlp.training.trainer - accuracy |     0.867  |     0.859
+2019-01-13 15:06:53,562 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:06:53,562 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:26
+2019-01-13 15:06:53,562 - INFO - allennlp.training.trainer - Epoch 11/199
+2019-01-13 15:06:53,562 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:06:53,656 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:06:53,656 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:06:53,657 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:01,297 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:01,846 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:01,847 - INFO - allennlp.training.trainer - loss     |     0.331  |     0.344
+2019-01-13 15:07:01,847 - INFO - allennlp.training.trainer - accuracy |     0.867  |     0.864
+2019-01-13 15:07:01,851 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:01,851 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:27:11
+2019-01-13 15:07:01,851 - INFO - allennlp.training.trainer - Epoch 12/199
+2019-01-13 15:07:01,851 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:01,947 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:01,948 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:01,948 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:09,530 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:10,074 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:10,075 - INFO - allennlp.training.trainer - loss     |     0.314  |     0.378
+2019-01-13 15:07:10,075 - INFO - allennlp.training.trainer - accuracy |     0.873  |     0.847
+2019-01-13 15:07:10,079 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:10,079 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:56
+2019-01-13 15:07:10,079 - INFO - allennlp.training.trainer - Epoch 13/199
+2019-01-13 15:07:10,079 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:10,171 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:10,171 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:10,172 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:17,801 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:18,347 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:18,347 - INFO - allennlp.training.trainer - loss     |     0.333  |     0.366
+2019-01-13 15:07:18,348 - INFO - allennlp.training.trainer - accuracy |     0.868  |     0.857
+2019-01-13 15:07:18,352 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:18,352 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:42
+2019-01-13 15:07:18,352 - INFO - allennlp.training.trainer - Epoch 14/199
+2019-01-13 15:07:18,352 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:18,440 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:18,441 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:18,441 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:26,072 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:26,617 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:26,617 - INFO - allennlp.training.trainer - loss     |     0.323  |     0.406
+2019-01-13 15:07:26,617 - INFO - allennlp.training.trainer - accuracy |     0.871  |     0.839
+2019-01-13 15:07:26,622 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:26,622 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:29
+2019-01-13 15:07:26,622 - INFO - allennlp.training.trainer - Epoch 15/199
+2019-01-13 15:07:26,622 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:26,710 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:26,710 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:26,710 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:34,472 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:35,019 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:35,019 - INFO - allennlp.training.trainer - loss     |     0.351  |     0.339
+2019-01-13 15:07:35,019 - INFO - allennlp.training.trainer - accuracy |     0.865  |     0.862
+2019-01-13 15:07:35,024 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:35,024 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:19
+2019-01-13 15:07:35,024 - INFO - allennlp.training.trainer - Epoch 16/199
+2019-01-13 15:07:35,024 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:35,112 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:35,113 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:35,113 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:42,699 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:43,265 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:43,265 - INFO - allennlp.training.trainer - loss     |     0.309  |     0.338
+2019-01-13 15:07:43,265 - INFO - allennlp.training.trainer - accuracy |     0.877  |     0.864
+2019-01-13 15:07:43,271 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:43,271 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:26:06
+2019-01-13 15:07:43,271 - INFO - allennlp.training.trainer - Epoch 17/199
+2019-01-13 15:07:43,271 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:43,371 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:43,372 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:43,372 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:51,115 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:51,660 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:51,660 - INFO - allennlp.training.trainer - loss     |     0.328  |     0.337
+2019-01-13 15:07:51,660 - INFO - allennlp.training.trainer - accuracy |     0.870  |     0.868
+2019-01-13 15:07:51,665 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:51,665 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:56
+2019-01-13 15:07:51,665 - INFO - allennlp.training.trainer - Epoch 18/199
+2019-01-13 15:07:51,665 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:51,760 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:51,760 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:51,761 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:07:59,342 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:07:59,887 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:07:59,888 - INFO - allennlp.training.trainer - loss     |     0.308  |     0.337
+2019-01-13 15:07:59,888 - INFO - allennlp.training.trainer - accuracy |     0.876  |     0.867
+2019-01-13 15:07:59,893 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:07:59,893 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:44
+2019-01-13 15:07:59,893 - INFO - allennlp.training.trainer - Epoch 19/199
+2019-01-13 15:07:59,893 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:07:59,982 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:07:59,983 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:07:59,983 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:08:07,731 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:08:08,273 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:08:08,273 - INFO - allennlp.training.trainer - loss     |     0.331  |     0.389
+2019-01-13 15:08:08,273 - INFO - allennlp.training.trainer - accuracy |     0.873  |     0.852
+2019-01-13 15:08:08,278 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:08:08,278 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:35
+2019-01-13 15:08:08,278 - INFO - allennlp.training.trainer - Epoch 20/199
+2019-01-13 15:08:08,278 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:08:08,371 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:08:08,371 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:08:08,372 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:08:16,062 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:08:16,606 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:08:16,607 - INFO - allennlp.training.trainer - loss     |     0.328  |     0.408
+2019-01-13 15:08:16,607 - INFO - allennlp.training.trainer - accuracy |     0.871  |     0.847
+2019-01-13 15:08:16,612 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:08:16,613 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:24
+2019-01-13 15:08:16,613 - INFO - allennlp.training.trainer - Epoch 21/199
+2019-01-13 15:08:16,613 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:08:16,707 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:08:16,707 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:08:16,707 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:08:24,408 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:08:24,954 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:08:24,954 - INFO - allennlp.training.trainer - loss     |     0.307  |     0.551
+2019-01-13 15:08:24,954 - INFO - allennlp.training.trainer - accuracy |     0.877  |     0.808
+2019-01-13 15:08:24,960 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:08:24,960 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:15
+2019-01-13 15:08:24,960 - INFO - allennlp.training.trainer - Epoch 22/199
+2019-01-13 15:08:24,960 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:08:25,055 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:08:25,055 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:08:25,055 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:08:32,696 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:08:33,242 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:08:33,243 - INFO - allennlp.training.trainer - loss     |     0.325  |     0.359
+2019-01-13 15:08:33,243 - INFO - allennlp.training.trainer - accuracy |     0.871  |     0.861
+2019-01-13 15:08:33,248 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:08:33,248 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:25:04
+2019-01-13 15:08:33,249 - INFO - allennlp.training.trainer - Epoch 23/199
+2019-01-13 15:08:33,249 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:08:33,339 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:08:33,340 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:08:33,340 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:08:40,868 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:08:41,414 - INFO - allennlp.training.trainer -              Training |  Validation
+2019-01-13 15:08:41,414 - INFO - allennlp.training.trainer - loss     |     0.314  |     0.345
+2019-01-13 15:08:41,415 - INFO - allennlp.training.trainer - accuracy |     0.878  |     0.867
+2019-01-13 15:08:41,420 - INFO - allennlp.training.trainer - Epoch duration: 00:00:08
+2019-01-13 15:08:41,420 - INFO - allennlp.training.trainer - Estimated training time remaining: 0:24:53
+2019-01-13 15:08:41,420 - INFO - allennlp.training.trainer - Epoch 24/199
+2019-01-13 15:08:41,420 - INFO - allennlp.training.trainer - Peak CPU memory usage MB: 3112.104
+2019-01-13 15:08:41,514 - INFO - allennlp.training.trainer - GPU 0 memory usage MB: 20
+2019-01-13 15:08:41,514 - INFO - allennlp.training.trainer - GPU 1 memory usage MB: 1569
+2019-01-13 15:08:41,514 - INFO - allennlp.training.trainer - Training
+2019-01-13 15:08:49,069 - INFO - allennlp.training.trainer - Validating
+2019-01-13 15:08:49,611 - INFO - allennlp.training.trainer - Ran out of patience.  Stopping training.
+2019-01-13 15:08:49,611 - INFO - allennlp.models.archival - archiving weights and vocabulary to experiments/supervised/boe_trials/results/boe5/model.tar.gz
+2019-01-13 15:08:49,699 - INFO - allennlp.commands.train - Loading the best epoch weights.
+2019-01-13 15:08:49,701 - INFO - allennlp.common.util - Metrics: {
+  "training_duration": "00:03:23",
   "training_start_epoch": 0,
-  "training_epochs": 40,
-  "epoch": 40,
-  "training_accuracy": 0.88505,
-  "training_loss": 0.29165354907512664,
-  "validation_accuracy": 0.8634,
-  "validation_loss": 0.3663677376508713,
-  "best_epoch": 21,
-  "best_validation_accuracy": 0.866,
-  "best_validation_loss": 0.3446827957034111
+  "training_epochs": 23,
+  "epoch": 23,
+  "training_accuracy": 0.87755,
+  "training_loss": 0.3143074484169483,
+  "validation_accuracy": 0.8666,
+  "validation_loss": 0.34479686826467515,
+  "best_epoch": 4,
+  "best_validation_accuracy": 0.8698,
+  "best_validation_loss": 0.32908988326787947
 }
