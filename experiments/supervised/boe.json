@@ -1,7 +1,6 @@
 {
   "dataset_reader": {
-    "type": "document_reader",
-    "use_stopless_tokens": true
+    "type": "document_reader"
   },
   "train_data_path": "/data/dangt7/IMDB/train_labelled.filtered.jsonl",
   "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",

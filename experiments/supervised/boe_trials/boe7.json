@@ -1,7 +1,6 @@
 {
   "dataset_reader": {
-    "type": "document_reader",
-    "use_stopless_tokens": true
+    "type": "document_reader"
   },
   "train_data_path": "/data/dangt7/IMDB/train_labelled.filtered.jsonl",
   "validation_data_path": "/data/dangt7/IMDB/valid.filtered.jsonl",
@@ -49,7 +48,7 @@
       "weight_decay": 0.001
     }
   },
-  "random_seed": 7760,
-  "numpy_seed": 3807,
-  "pytorch_seed": 3362
+  "random_seed": 2501,
+  "numpy_seed": 5329,
+  "pytorch_seed": 8349
 }
